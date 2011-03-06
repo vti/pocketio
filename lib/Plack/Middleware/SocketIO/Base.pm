@@ -93,7 +93,6 @@ sub _parse_data {
                 return $json if defined $json;
 
                 return $self->_parse_data;
-                }
             }
             else {
                 return $message;
