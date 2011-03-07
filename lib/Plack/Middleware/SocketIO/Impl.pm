@@ -3,6 +3,7 @@ package Plack::Middleware::SocketIO::Impl;
 use strict;
 use warnings;
 
+use Plack::Request;
 use Plack::Middleware::SocketIO::Connection;
 use Plack::Middleware::SocketIO::Handle;
 use Plack::Middleware::SocketIO::WebSocket;
@@ -50,43 +51,26 @@ sub finalize {
     my $self = shift;
     my ($env, $cb) = @_;
 
-    return [500, [], []] unless my $io = $env->{'psgix.io'};
-    my $handle = $self->_build_handle($env->{'psgix.io'});
-
-    my $path = $env->{PATH_INFO};
-    $path = '/' unless defined $path;
-    $path = "/$path" unless $path =~ m{^/} || $path eq '/';
-
-    $path =~ s{/socket\.io}{};
-
     my $transport;
-    if ($path =~ m{/xhr-multipart}) {
-        $transport =
-          Plack::Middleware::SocketIO::XHRMultipart->new(handle => $handle);
-    }
-    elsif ($path =~ m{/xhr-polling}) {
-        #return Plack::Middleware::SocketIO::XHRPolling->new($self->{env})->handshake($cb);
-    }
 
-    #return Plack::Middleware::SocketIO::WebSocket->new($self->{env})->handshake($cb);
-
-    if (!$transport) {
-        return [400, ['Content-type' => 'text/plain'], ['Bad request']];
+    if ($env->{PATH_INFO} =~ s{^/xhr-multipart}{}) {
+        $transport = Plack::Middleware::SocketIO::XHRMultipart->new;
+    }
+    elsif ($env->{PATH_INFO} =~ s{^/xhr-polling}{}) {
+        $transport = Plack::Middleware::SocketIO::XHRPolling->new;
     }
 
-    return $transport->finalize($env, $cb);
+    return unless $transport;
+
+    my $req = Plack::Request->new($env);
+
+    return $transport->finalize($req, $cb);
 }
 
 sub _build_connection {
     my $self = shift;
 
     return Plack::Middleware::SocketIO::Connection->new(@_);
-}
-
-sub _build_handle {
-    my $self = shift;
-
-    return Plack::Middleware::SocketIO::Handle->new(@_);
 }
 
 1;

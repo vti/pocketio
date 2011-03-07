@@ -17,10 +17,11 @@ sub call {
     my $resource = $self->resource || 'socket.io';
     $resource = quotemeta $resource;
 
-    if ($env->{PATH_INFO} =~ m{^/$resource/}) {
+    if ($env->{PATH_INFO} =~ s{^/$resource}{}) {
         my $instance = Plack::Middleware::SocketIO::Impl->instance;
 
-        return $instance->finalize($env, $self->handler);
+        return $instance->finalize($env, $self->handler)
+          || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
     }
 
     return $self->app->($env);

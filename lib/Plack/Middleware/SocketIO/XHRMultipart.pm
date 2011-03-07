@@ -5,8 +5,7 @@ use warnings;
 
 use base 'Plack::Middleware::SocketIO::Base';
 
-use Plack::Request;
-use Plack::Middleware::SocketIO::Impl;
+use Plack::Middleware::SocketIO::Handle;
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -20,70 +19,69 @@ sub name {'xhr-multipart'}
 
 sub finalize {
     my $self = shift;
-    my ($env, $cb) = @_;
+    my ($req, $cb) = @_;
 
-    my $req = Plack::Request->new($env);
+    return $self->_finalize_stream($req, $cb) if $req->method eq 'GET';
 
-    if ($req->method eq 'GET') {
-        return $self->_new_connection($cb);
-    }
+    return unless $req->method eq 'POST' && $req->path =~ m{/(\d+)/send};
 
-    my $path = $req->path_info;
-    my ($id) = $path =~ m{/xhr-multipart/(\d+)/send};
-
-    if ($req->method ne 'POST' || !$id) {
-        return [400, [], ['Bad request']];
-    }
-
-    return $self->_new_message($id, $req);
+    return $self->_finalize_send($req, $1);
 }
 
-sub _new_connection {
+sub _finalize_stream {
     my $self = shift;
-    my ($cb) = @_;
+    my ($req, $cb) = @_;
+
+    my $handle = $self->_build_handle($req->env->{'psgix.io'});
+    return unless $handle;
 
     return sub {
         my $respond = shift;
 
         my $boundary = $self->{boundary};
 
-        my $h = $self->handle;
-
-        $h->write(
+        $handle->write(
             join "\x0d\x0a" => 'HTTP/1.1 200 OK',
             qq{Content-Type: multipart/x-mixed-replace;boundary="$boundary"},
             'Connection: keep-alive', '', ''
         );
 
-        $h->on_read(
+        my $conn = $self->add_connection(on_connect => $cb);
+
+        $handle->heartbeat_timeout(10);
+        $handle->on_heartbeat(sub { $conn->send_heartbeat });
+
+        $conn->on_write(
             sub {
-                warn "$_[0]";
+                my $self = shift;
+                my ($message) = @_;
+
+                my $string = '';
+
+                $string .= "Content-Type: text/plain\x0a\x0a";
+                if ($message eq '') {
+                    $string .= "-1--$boundary--\x0a";
+                }
+                else {
+                    $string .= "$message\x0a--$boundary\x0a";
+                }
+
+                $handle->write($string);
             }
         );
 
-        $h->heartbeat_timeout(10);
-        $h->on_heartbeat(sub { $self->send_heartbeat });
+        $conn->send_id_message($conn->id);
 
-        my $conn =
-          Plack::Middleware::SocketIO::Impl->instance->add_connection(
-            transport => $self);
-
-        $self->id($conn->id);
-        $self->send_message($conn->id);
-
-        $cb->($self);
+        $conn->connected unless $conn->is_connected;
     };
 }
 
-sub _new_message {
+sub _finalize_send {
     my $self = shift;
-    my ($id, $req) = @_;
+    my ($req, $id) = @_;
 
-    my $instance = Plack::Middleware::SocketIO::Impl->instance;
-
-    my $conn = $instance->connection($id);
-
-    return [400, [], ['Bad request']] unless $conn;
+    my $conn = $self->find_connection_by_id($id);
+    return unless $conn;
 
     my $retval = [
         200,
@@ -93,28 +91,15 @@ sub _new_message {
 
     my $data = $req->body_parameters->get('data');
 
-    $conn->transport->read($data);
+    $conn->read($data);
 
     return $retval;
 }
 
-sub _format_message {
+sub _build_handle {
     my $self = shift;
-    my ($message) = @_;
 
-    my $boundary = $self->{boundary};
-
-    my $string = '';
-
-    $string .= "Content-Type: text/plain\x0a\x0a";
-    if ($message eq '') {
-        $string .= "-1--$boundary--\x0a";
-    }
-    else {
-        $string .= "$message\x0a--$boundary\x0a";
-    }
-
-    return $string;
+    return Plack::Middleware::SocketIO::Handle->new(@_);
 }
 
 1;
