@@ -9,6 +9,7 @@ use Plack::Middleware::SocketIO::Handle;
 use Plack::Middleware::SocketIO::WebSocket;
 use Plack::Middleware::SocketIO::XHRMultipart;
 use Plack::Middleware::SocketIO::XHRPolling;
+use Plack::Middleware::SocketIO::JSONPPolling;
 
 sub instance {
     my $class = shift;
@@ -58,6 +59,9 @@ sub finalize {
     }
     elsif ($env->{PATH_INFO} =~ s{^/xhr-polling}{}) {
         $transport = Plack::Middleware::SocketIO::XHRPolling->new;
+    }
+    elsif ($env->{PATH_INFO} =~ s{^/jsonp-polling}{}) {
+        $transport = Plack::Middleware::SocketIO::JSONPPolling->new;
     }
 
     return unless $transport;
