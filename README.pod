@@ -4,7 +4,7 @@
 =head1 Plack::Middleware::SocketIO
 
 L<Plack::Middleware::SocketIO> is a server implmentation of SocketIO in Perl.
-For now it supports all transport except C<Forever Iframe> (working on it).
+For now it supports all transports except C<Forever Iframe> (working on it).
 
 =head1 SocketIO
 
@@ -14,7 +14,7 @@ on GitHub L<https://github.com/LearnBoost/Socket.IO>.
 =head1 EXAMPLE
 
 Below is an example similar to Socket.IO-node example chat. To run this example,
-you need to make 3 simple steps:
+you need to make the following simple steps:
 
 =over 4
 
@@ -71,6 +71,10 @@ you need to make 3 simple steps:
 =item 3. Start L<Twiggy>
 
     twiggy chat.psgi --listen :8080
+
+=item 4. Point your browser to
+
+    http://localhost:8080
 
 =back
 
