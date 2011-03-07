@@ -65,7 +65,6 @@ sub on_read {
 
     $self->{handle}->on_read(
         sub {
-            warn "HANDLE READ " . $_[0]->rbuf;
             $cb->($self, $_[0]->rbuf);
         }
     );

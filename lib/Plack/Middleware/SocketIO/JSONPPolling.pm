@@ -11,13 +11,16 @@ sub finalize {
     my $self = shift;
     my ($req, $cb) = @_;
 
-    if ($req->method eq 'GET') {
-        return $self->_finalize_init($cb) if $req->path =~ m{^/\d+/\d+$};
+    my $name     = $self->name;
+    my $resource = $self->resource;
 
-        return $self->_finalize_stream($1) if $req->path =~ m{^(\d+)/\d+/\d+$};
+    if ($req->method eq 'GET') {
+        return $self->_finalize_init($cb) if $req->path =~ m{^/$resource/$name//\d+/\d+$};
+
+        return $self->_finalize_stream($1) if $req->path =~ m{^/$resource/$name/(\d+)/\d+/\d+$};
     }
 
-    return unless $req->method eq 'POST' && $req->path =~ m{^(\d+)/\d+/\d+$};
+    return unless $req->method eq 'POST' && $req->path =~ m{^/$resource/$name/(\d+)/\d+/\d+$};
 
     return $self->_finalize_send($req, $1);
 }

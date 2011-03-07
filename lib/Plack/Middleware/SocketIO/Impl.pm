@@ -53,26 +53,40 @@ sub finalize {
     my $self = shift;
     my ($env, $cb) = @_;
 
-    my $transport;
+    my ($resource, $type) = $env->{PATH_INFO} =~ m{^/([^\/]+)/([^\/]+)/?};
+    return unless $resource && $type;
 
-    if ($env->{PATH_INFO} =~ s{^/xhr-multipart/}{}) {
-        $transport = Plack::Middleware::SocketIO::XHRMultipart->new;
-    }
-    elsif ($env->{PATH_INFO} =~ s{^/xhr-polling/}{}) {
-        $transport = Plack::Middleware::SocketIO::XHRPolling->new;
-    }
-    elsif ($env->{PATH_INFO} =~ s{^/jsonp-polling/}{}) {
-        $transport = Plack::Middleware::SocketIO::JSONPPolling->new;
-    }
-    elsif ($env->{PATH_INFO} =~ s{^/flashsocket/}{}) {
-        $transport = Plack::Middleware::SocketIO::WebSocket->new;
-    }
-
+    my $transport = $self->_build_transport($type, resource => $resource);
     return unless $transport;
 
     my $req = Plack::Request->new($env);
 
     return $transport->finalize($req, $cb);
+}
+
+sub _build_transport {
+    my $self = shift;
+    my ($type, @args) = @_;
+
+    my $class;
+    if ($type eq 'xhr-multipart') {
+        $class = 'XHRMultipart';
+    }
+    elsif ($type eq 'xhr-polling') {
+        $class = 'XHRPolling';
+    }
+    elsif ($type eq 'jsonp-polling') {
+        $class = 'JSONPPolling';
+    }
+    elsif ($type =~ m/^(?:flash|web)socket$/) {
+        $class = 'WebSocket';
+    }
+
+    return unless $class;
+
+    $class = "Plack::Middleware::SocketIO::$class";
+
+    return $class->new(@args);
 }
 
 sub _build_connection {

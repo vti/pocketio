@@ -16,13 +16,13 @@ sub new {
     return $self;
 }
 
-sub id {
+sub resource {
     my $self = shift;
-    my ($id) = @_;
+    my ($resource) = @_;
 
-    return $self->{id} unless defined $id;
+    return $self->{resource} unless defined $resource;
 
-    $self->{id} = $id;
+    $self->{resource} = $resource;
 
     return $self;
 }

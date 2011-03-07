@@ -17,7 +17,7 @@ sub call {
     my $resource = $self->resource || 'socket.io';
     $resource = quotemeta $resource;
 
-    if ($env->{PATH_INFO} =~ s{^/$resource}{}) {
+    if ($env->{PATH_INFO} =~ m{^/$resource/}) {
         my $instance = Plack::Middleware::SocketIO::Impl->instance;
 
         return $instance->finalize($env, $self->handler)
