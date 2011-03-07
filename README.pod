@@ -1,0 +1,103 @@
+
+=pod
+
+=head1 Plack::Middleware::SocketIO
+
+L<Plack::Middleware::SocketIO> is a server implmentation of SocketIO in Perl.
+For now it supports all transport except C<Forever Iframe> (working on it).
+
+=head1 SocketIO
+
+More information about SocketIO you can find on the website L<http://socket.io/>, or
+on GitHub L<https://github.com/LearnBoost/Socket.IO>.
+
+=head1 EXAMPLE
+
+Below is an example similar to Socket.IO-node example chat. To run this example,
+you need to make 3 simple steps:
+
+=over 4
+
+=item 1. Clone somewhere L<https://github.com/LearnBoost/Socket.IO-node>.
+
+=item 2. Save the shown .psgi file, changing <$path_to_socket_io> so it points to the Socket.IO-node files.
+
+    use Plack::Builder;
+    use Plack::App::File;
+    use Plack::Middleware::Static;
+    use Plack::Middleware::SocketIO;
+
+    my $path_to_socket_io = "/path/to/Socket.IO-node";
+
+    builder {
+        mount '/socket.io/socket.io.js' => Plack::App::File->new(
+            file => "$path_to_socket_io/support/socket.io-client/socket.io.js");
+
+        mount '/' => builder {
+            enable "Static",
+              path => qr/\.(?:js|css|jpe?g|gif|png|html?|js|css|swf|ico)$/,
+              root => "$path_to_socket_io/example";
+
+            enable "SocketIO", handler => sub {
+                my $self = shift;
+
+                $self->on_message(
+                    sub {
+                        my $self = shift;
+                        my ($message) = @_;
+
+                        $self->send_message(
+                            {   message => [
+                                    $self->id,
+                                    join '' => reverse split '' => $message
+                                ]
+                            }
+                        );
+                    }
+                );
+
+                $self->send_message({buffer => []});
+            };
+
+            sub {
+                [   200,
+                    ['Content-Type' => 'text/html'],
+                    ['Open <a href="/chat.html">chat</a>.']
+                ];
+            };
+        };
+    };
+
+=item 3. Start L<Twiggy>
+
+    twiggy chat.psgi --listen :8080
+
+=back
+
+=head1 TODO
+
+    * make API more like SocketIO.node
+    * broadcast messages
+    * disconnect events
+    * inline flash service policy
+
+=head1 DISCLAIMER
+
+This middleware is in a very beta stage. API will be probably changed.
+
+=head1 CREDITS
+
+Socket.IO authors and contributors.
+
+=head1 AUTHOR
+
+Viacheslav Tykhanovskyi, C<vti@cpan.org>.
+
+=head1 COPYRIGHT
+
+Copyright (C) 2011, Viacheslav Tykhanovskyi
+
+This program is free software, you can redistribute it and/or modify it under
+the same terms as Perl 5.10.
+
+=cut
