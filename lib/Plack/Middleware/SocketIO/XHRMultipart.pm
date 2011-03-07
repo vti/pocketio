@@ -23,7 +23,7 @@ sub finalize {
 
     return $self->_finalize_stream($req, $cb) if $req->method eq 'GET';
 
-    return unless $req->method eq 'POST' && $req->path =~ m{/(\d+)/send};
+    return unless $req->method eq 'POST' && $req->path =~ m{^(\d+)/send$};
 
     return $self->_finalize_send($req, $1);
 }

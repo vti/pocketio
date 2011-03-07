@@ -6,10 +6,11 @@ use warnings;
 use Plack::Request;
 use Plack::Middleware::SocketIO::Connection;
 use Plack::Middleware::SocketIO::Handle;
+
+use Plack::Middleware::SocketIO::JSONPPolling;
 use Plack::Middleware::SocketIO::WebSocket;
 use Plack::Middleware::SocketIO::XHRMultipart;
 use Plack::Middleware::SocketIO::XHRPolling;
-use Plack::Middleware::SocketIO::JSONPPolling;
 
 sub instance {
     my $class = shift;
@@ -54,14 +55,17 @@ sub finalize {
 
     my $transport;
 
-    if ($env->{PATH_INFO} =~ s{^/xhr-multipart}{}) {
+    if ($env->{PATH_INFO} =~ s{^/xhr-multipart/}{}) {
         $transport = Plack::Middleware::SocketIO::XHRMultipart->new;
     }
-    elsif ($env->{PATH_INFO} =~ s{^/xhr-polling}{}) {
+    elsif ($env->{PATH_INFO} =~ s{^/xhr-polling/}{}) {
         $transport = Plack::Middleware::SocketIO::XHRPolling->new;
     }
-    elsif ($env->{PATH_INFO} =~ s{^/jsonp-polling}{}) {
+    elsif ($env->{PATH_INFO} =~ s{^/jsonp-polling/}{}) {
         $transport = Plack::Middleware::SocketIO::JSONPPolling->new;
+    }
+    elsif ($env->{PATH_INFO} =~ s{^/flashsocket/}{}) {
+        $transport = Plack::Middleware::SocketIO::WebSocket->new;
     }
 
     return unless $transport;
