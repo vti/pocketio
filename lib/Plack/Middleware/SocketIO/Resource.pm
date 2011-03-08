@@ -1,4 +1,4 @@
-package Plack::Middleware::SocketIO::Impl;
+package Plack::Middleware::SocketIO::Resource;
 
 use strict;
 use warnings;

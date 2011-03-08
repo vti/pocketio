@@ -3,7 +3,7 @@ package Plack::Middleware::SocketIO::Base;
 use strict;
 use warnings;
 
-use Plack::Middleware::SocketIO::Impl;
+use Plack::Middleware::SocketIO::Resource;
 use JSON   ();
 use Encode ();
 use Try::Tiny;
@@ -30,14 +30,14 @@ sub resource {
 sub add_connection {
     my $self = shift;
 
-    Plack::Middleware::SocketIO::Impl->instance->add_connection(@_);
+    return Plack::Middleware::SocketIO::Resource->instance->add_connection(@_);
 }
 
 sub find_connection_by_id {
     my $self = shift;
     my ($id) = @_;
 
-    return Plack::Middleware::SocketIO::Impl->instance->connection($id);
+    return Plack::Middleware::SocketIO::Resource->instance->connection($id);
 }
 
 1;
