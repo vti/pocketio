@@ -1,3 +1,13 @@
+BEGIN {
+    use File::Basename ();
+    use File::Spec ();
+
+    my $root = File::Basename::dirname(__FILE__);
+    $root = File::Spec->rel2abs($root);
+
+    unshift @INC, "$root/../lib";
+}
+
 use Plack::Builder;
 use Plack::App::File;
 use Plack::Middleware::Static;
