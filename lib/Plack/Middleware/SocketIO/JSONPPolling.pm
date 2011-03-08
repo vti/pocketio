@@ -15,12 +15,16 @@ sub finalize {
     my $resource = $self->resource;
 
     if ($req->method eq 'GET') {
-        return $self->_finalize_init($cb) if $req->path =~ m{^/$resource/$name//\d+/\d+$};
+        return $self->_finalize_init($cb)
+          if $req->path =~ m{^/$resource/$name//\d+/\d+$};
 
-        return $self->_finalize_stream($1) if $req->path =~ m{^/$resource/$name/(\d+)/\d+/\d+$};
+        return $self->_finalize_stream($1)
+          if $req->path =~ m{^/$resource/$name/(\d+)/\d+/\d+$};
     }
 
-    return unless $req->method eq 'POST' && $req->path =~ m{^/$resource/$name/(\d+)/\d+/\d+$};
+    return
+      unless $req->method eq 'POST'
+          && $req->path =~ m{^/$resource/$name/(\d+)/\d+/\d+$};
 
     return $self->_finalize_send($req, $1);
 }

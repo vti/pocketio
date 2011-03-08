@@ -105,6 +105,8 @@ sub read {
     my $self = shift;
     my ($data) = @_;
 
+    return $self unless defined $data;
+
     $self->{data} .= $data;
 
     while (my $message = $self->_parse_data) {
