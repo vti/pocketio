@@ -85,6 +85,8 @@ sub _finalize_stream {
                 );
 
                 # TODO: reconnect timeout
+
+                $handle->close;
             }
         );
 

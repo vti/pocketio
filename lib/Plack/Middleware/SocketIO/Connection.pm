@@ -128,6 +128,20 @@ sub send_message {
     return $self;
 }
 
+sub send_broadcast {
+    my $self = shift;
+    my ($message) = @_;
+
+    my @conn = grep { $_->is_connected && $_->id ne $self->id }
+      Plack::Middleware::SocketIO::Resource->instance->connections;
+
+    foreach my $conn (@conn) {
+        $conn->send_message($message);
+    }
+
+    return $self;
+}
+
 sub send_id_message {
     my $self = shift;
 

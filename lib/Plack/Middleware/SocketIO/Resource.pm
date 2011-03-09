@@ -29,6 +29,12 @@ sub connection {
     return $self->{connections}->{$id};
 }
 
+sub connections {
+    my $self = shift;
+
+    return values %{$self->{connections}};
+}
+
 sub add_connection {
     my $self = shift;
 

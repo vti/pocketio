@@ -79,10 +79,13 @@ sub write {
     my $self = shift;
     my ($chunk, $cb) = @_;
 
-    $self->{handle}->push_write($chunk);
+    my $handle = $self->{handle};
+    return $self unless $handle;
+
+    $handle->push_write($chunk);
 
     if ($cb) {
-        $self->{handle}->on_drain(
+        $handle->on_drain(
             sub {
                 $self->{handle}->on_drain(undef);
 
@@ -98,12 +101,16 @@ sub close {
     my $self = shift;
 
     my $handle = delete $self->{handle};
-    return unless $handle;
+    return $self unless $handle;
+
+    $handle->timeout_reset;
 
     shutdown $handle->fh, 1;
 
     $handle->destroy;
     undef $handle;
+
+    return $self;
 }
 
 1;
