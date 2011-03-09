@@ -14,12 +14,12 @@ sub name {'websocket'}
 
 sub finalize {
     my $self = shift;
-    my ($req, $cb) = @_;
+    my ($cb) = @_;
 
-    my $fh = $req->env->{'psgix.io'};
+    my $fh = $self->req->env->{'psgix.io'};
     return unless $fh;
 
-    my $hs = Protocol::WebSocket::Handshake::Server->new_from_psgi($req->env);
+    my $hs = Protocol::WebSocket::Handshake::Server->new_from_psgi($self->req->env);
     return unless $hs->parse($fh);
 
     my $frame = Protocol::WebSocket::Frame->new;
@@ -46,6 +46,14 @@ sub finalize {
                     }
                 );
 
+                $handle->on_eof(
+                    sub {
+                        $handle->close;
+
+                        $self->client_disconnected($conn);
+                    }
+                );
+
                 $conn->on_write(
                     sub {
                         my $conn = shift;
@@ -59,7 +67,7 @@ sub finalize {
 
                 $conn->send_id_message($conn->id);
 
-                $conn->connected unless $conn->is_connected;
+                $self->client_connected($conn);
             }
         );
     };
@@ -70,12 +78,6 @@ sub _build_frame {
     my ($message) = @_;
 
     return Protocol::WebSocket::Frame->new($message)->to_string;
-}
-
-sub _build_handle {
-    my $self = shift;
-
-    return Plack::Middleware::SocketIO::Handle->new(@_);
 }
 
 1;

@@ -9,8 +9,9 @@ sub name {'jsonp-polling'}
 
 sub finalize {
     my $self = shift;
-    my ($req, $cb) = @_;
+    my ($cb) = @_;
 
+    my $req      = $self->req;
     my $name     = $self->name;
     my $resource = $self->resource;
 
@@ -54,8 +55,21 @@ sub _finalize_stream {
     my $conn = $self->find_connection_by_id($id);
     return unless $conn;
 
+    my $handle = $self->_build_handle($self->env->{'psgix.io'});
+
     return sub {
         my $respond = shift;
+
+        $handle->on_eof(
+            sub {
+                $self->client_disconnected($conn);
+
+                $handle->close;
+            }
+        );
+
+        $handle->heartbeat_timeout(10);
+        $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
         $conn->on_write(
             sub {
@@ -64,18 +78,17 @@ sub _finalize_stream {
 
                 $message = $self->_wrap_into_jsonp($message);
 
-                $respond->(
-                    [   200,
-                        [   'Content-Type'   => 'text/plain',
-                            'Content-Length' => length($message)
-                        ],
-                        [$message]
-                    ]
+                $handle->write(
+                    join "\x0d\x0a" => 'HTTP/1.1 200 OK',
+                    'Content-Type: text/plain',
+                    'Content-Length: ' . length($message), '', $message
                 );
+
+                # TODO: reconnect timeout
             }
         );
 
-        $conn->connected unless $conn->is_connected;
+        $self->client_connected($conn);
     };
 }
 

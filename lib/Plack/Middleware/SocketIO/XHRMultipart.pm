@@ -19,8 +19,9 @@ sub name {'xhr-multipart'}
 
 sub finalize {
     my $self = shift;
-    my ($req, $cb) = @_;
+    my ($cb) = @_;
 
+    my $req      = $self->req;
     my $name     = $self->name;
     my $resource = $self->resource;
 
@@ -45,16 +46,7 @@ sub _finalize_stream {
 
         my $boundary = $self->{boundary};
 
-        $handle->write(
-            join "\x0d\x0a" => 'HTTP/1.1 200 OK',
-            qq{Content-Type: multipart/x-mixed-replace;boundary="$boundary"},
-            'Connection: keep-alive', '', ''
-        );
-
         my $conn = $self->add_connection(on_connect => $cb);
-
-        $handle->heartbeat_timeout(10);
-        $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
         $conn->on_write(
             sub {
@@ -75,9 +67,28 @@ sub _finalize_stream {
             }
         );
 
+        $handle->heartbeat_timeout(10);
+        $handle->on_heartbeat(sub { $conn->send_heartbeat });
+
+        $handle->on_eof(
+            sub {
+                my $handle = shift;
+
+                $handle->close;
+
+                $self->client_disconnected($conn);
+            }
+        );
+
+        $handle->write(
+            join "\x0d\x0a" => 'HTTP/1.1 200 OK',
+            qq{Content-Type: multipart/x-mixed-replace;boundary="$boundary"},
+            'Connection: keep-alive', '', ''
+        );
+
         $conn->send_id_message($conn->id);
 
-        $conn->connected unless $conn->is_connected;
+        $self->client_connected($conn);
     };
 }
 
@@ -99,12 +110,6 @@ sub _finalize_send {
     $conn->read($data);
 
     return $retval;
-}
-
-sub _build_handle {
-    my $self = shift;
-
-    return Plack::Middleware::SocketIO::Handle->new(@_);
 }
 
 1;

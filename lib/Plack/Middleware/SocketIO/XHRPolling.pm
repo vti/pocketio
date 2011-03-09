@@ -9,18 +9,23 @@ sub name {'xhr-polling'}
 
 sub finalize {
     my $self = shift;
-    my ($req, $cb) = @_;
+    my ($cb) = @_;
 
+    my $req      = $self->req;
     my $resource = $self->resource;
     my $name     = $self->name;
 
     if ($req->method eq 'GET') {
-        return $self->_finalize_init($cb) if $req->path =~ m{^/$resource/$name//\d+$};
+        return $self->_finalize_init($cb)
+          if $req->path =~ m{^/$resource/$name//\d+$};
 
-        return $self->_finalize_stream($1) if $req->path =~ m{^/$resource/$name/(\d+)/\d+$};
+        return $self->_finalize_stream($1)
+          if $req->path =~ m{^/$resource/$name/(\d+)/\d+$};
     }
 
-    return unless $req->method eq 'POST' && $req->path_info =~ m{^/$resource/$name/(\d+)/send$};
+    return
+      unless $req->method eq 'POST'
+          && $req->path_info =~ m{^/$resource/$name/(\d+)/send$};
 
     return $self->_finalize_send($req, $1);
 }
@@ -50,26 +55,38 @@ sub _finalize_stream {
     my $conn = $self->find_connection_by_id($id);
     return unless $conn;
 
+    my $handle = $self->_build_handle($self->env->{'psgix.io'});
+
     return sub {
         my $respond = shift;
+
+        $handle->on_eof(
+            sub {
+                $self->client_disconnected($conn);
+
+                $handle->close;
+            }
+        );
+
+        $handle->heartbeat_timeout(10);
+        $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
         $conn->on_write(
             sub {
                 my $self = shift;
                 my ($message) = @_;
 
-                $respond->(
-                    [   200,
-                        [   'Content-Type'   => 'text/plain',
-                            'Content-Length' => length($message)
-                        ],
-                        [$message]
-                    ]
+                $handle->write(
+                    join "\x0d\x0a" => 'HTTP/1.1 200 OK',
+                    'Content-Type: text/plain',
+                    'Content-Length: ' . length($message), '', $message
                 );
+
+                # TODO: set reconnect timeout
             }
         );
 
-        $conn->connected unless $conn->is_connected;
+        $self->client_connected($conn);
     };
 }
 

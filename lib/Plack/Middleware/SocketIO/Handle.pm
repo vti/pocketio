@@ -15,8 +15,11 @@ sub new {
     $fh->autoflush;
 
     $self->{handle}->no_delay(1);
-    $self->{handle}->on_eof(sub {});
-    $self->{handle}->on_error(sub {});
+    $self->{handle}->on_eof(sub   { warn "Unhandled handle eof" });
+    $self->{handle}->on_error(sub { warn "Unhandled handle error: $_[2]" });
+
+    # This is needed for the correct EOF handling
+    $self->{handle}->on_read(sub { });
 
     return $self;
 }
@@ -40,6 +43,38 @@ sub on_heartbeat {
     return $self;
 }
 
+sub on_read {
+    my $self = shift;
+    my ($cb) = @_;
+
+    $self->{handle}->on_read(
+        sub {
+            my $handle = shift;
+
+            $handle->push_read(
+                sub {
+                    $cb->($self, $_[0]->rbuf);
+                }
+            );
+        }
+    );
+
+    return $self;
+}
+
+sub on_eof {
+    my $self = shift;
+    my ($cb) = @_;
+
+    $self->{handle}->on_eof(
+        sub {
+            $cb->($self);
+        }
+    );
+
+    return $self;
+}
+
 sub write {
     my $self = shift;
     my ($chunk, $cb) = @_;
@@ -59,17 +94,16 @@ sub write {
     return $self;
 }
 
-sub on_read {
+sub close {
     my $self = shift;
-    my ($cb) = @_;
 
-    $self->{handle}->on_read(
-        sub {
-            $cb->($self, $_[0]->rbuf);
-        }
-    );
+    my $handle = delete $self->{handle};
+    return unless $handle;
 
-    return $self;
+    shutdown $handle->fh, 1;
+
+    $handle->destroy;
+    undef $handle;
 }
 
 1;

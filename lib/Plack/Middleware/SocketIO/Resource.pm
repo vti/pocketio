@@ -22,16 +22,6 @@ sub instance {
     return ${"$class\::_instance"};
 }
 
-sub _new_instance {
-    my $class = shift;
-
-    my $self = bless {@_}, $class;
-
-    $self->{connections} = {};
-
-    return $self;
-}
-
 sub connection {
     my $self = shift;
     my ($id) = @_;
@@ -49,6 +39,13 @@ sub add_connection {
     return $conn;
 }
 
+sub remove_connection {
+    my $self = shift;
+    my ($id) = @_;
+
+    delete $self->{connections}->{$id};
+}
+
 sub finalize {
     my $self = shift;
     my ($env, $cb) = @_;
@@ -56,12 +53,21 @@ sub finalize {
     my ($resource, $type) = $env->{PATH_INFO} =~ m{^/([^\/]+)/([^\/]+)/?};
     return unless $resource && $type;
 
-    my $transport = $self->_build_transport($type, resource => $resource);
+    my $transport =
+      $self->_build_transport($type, env => $env, resource => $resource);
     return unless $transport;
 
-    my $req = Plack::Request->new($env);
+    return $transport->finalize($cb);
+}
 
-    return $transport->finalize($req, $cb);
+sub _new_instance {
+    my $class = shift;
+
+    my $self = bless {@_}, $class;
+
+    $self->{connections} = {};
+
+    return $self;
 }
 
 sub _build_transport {

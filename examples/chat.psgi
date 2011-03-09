@@ -24,11 +24,13 @@ builder {
           path => qr/\.(?:js|css|jpe?g|gif|png|html?|js|css|swf|ico)$/,
           root => "$path_to_socket_io/example";
 
+        enable "SimpleLogger",
+          level => 'debug';
+
         enable "SocketIO", handler => sub {
             my $self = shift;
 
-            $self->on_message(
-                sub {
+            $self->on_message(sub {
                     my $self = shift;
                     my ($message) = @_;
 

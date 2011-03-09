@@ -12,12 +12,15 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
-    $self->{on_error}   ||= sub { };
-    $self->{on_connect} ||= sub { };
-    $self->{on_write}   ||= sub { };
-    $self->{on_message} ||= sub { };
+    $self->{on_connect}    ||= sub { };
+    $self->{on_message}    ||= sub { };
+    $self->{on_disconnect} ||= sub { };
+    $self->{on_error}      ||= sub { };
 
     $self->{data} = '';
+    $self->{on_write}   ||= sub { };
+
+    $self->{last_activity} = 0;
 
     return $self;
 }
@@ -28,12 +31,24 @@ sub is_connected {
     return $self->{is_connected};
 }
 
-sub connected {
+sub connect {
     my $self = shift;
 
     $self->{is_connected} = 1;
 
     $self->{on_connect}->($self);
+
+    $self->{last_activity} = time;
+
+    return $self;
+}
+
+sub disconnect {
+    my $self = shift;
+
+    $self->{is_connected} = 0;
+
+    $self->{on_disconnect}->($self);
 
     return $self;
 }
@@ -46,57 +61,31 @@ sub id {
     return $self->{id};
 }
 
-sub transport {
+sub type {
     my $self = shift;
-    my ($transport) = @_;
+    my ($type) = @_;
 
-    return $self->{transport} unless defined $transport;
+    return $self->{type} unless defined $type;
 
-    $self->{transport} = $transport;
+    $self->{type} = $type;
 
     return $self;
 }
 
-sub handle {
+sub on_message    { shift->on(message    => @_) }
+sub on_disconnect { shift->on(disconnect => @_) }
+sub on_error      { shift->on(error      => @_) }
+sub on_write      { shift->on(write      => @_) }
+
+sub on {
     my $self = shift;
-    my ($handle) = @_;
+    my ($event, $cb) = @_;
 
-    return $self->{handle} unless defined $handle;
+    my $name = "on_$event";
 
-    $self->{handle} = $handle;
+    return $self->{$name} unless $cb;
 
-    return $self;
-}
-
-sub on_error {
-    my $self = shift;
-    my ($cb) = @_;
-
-    return $self->{on_error} unless $cb;
-
-    $self->{on_error} = $cb;
-
-    return $self;
-}
-
-sub on_message {
-    my $self = shift;
-    my ($cb) = @_;
-
-    return $self->{on_message} unless $cb;
-
-    $self->{on_message} = $cb;
-
-    return $self;
-}
-
-sub on_write {
-    my $self = shift;
-    my ($cb) = @_;
-
-    return $self->{on_write} unless $cb;
-
-    $self->{on_write} = $cb;
+    $self->{$name} = $cb;
 
     return $self;
 }
@@ -106,6 +95,8 @@ sub read {
     my ($data) = @_;
 
     return $self unless defined $data;
+
+    $self->{last_activity} = time;
 
     $self->{data} .= $data;
 
@@ -128,6 +119,8 @@ sub send_message {
     my $self = shift;
     my ($message) = @_;
 
+    $self->{last_activity} = time;
+
     $message = $self->_build_message($message);
 
     $self->on_write->($self, $message);
@@ -137,6 +130,8 @@ sub send_message {
 
 sub send_id_message {
     my $self = shift;
+
+    $self->{last_activity} = time;
 
     my $message = $self->build_id_message;
 
