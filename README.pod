@@ -85,9 +85,7 @@ you need to make the following simple steps:
 
 =head1 TODO
 
-    * make API more like SocketIO.node
-    * broadcast messages
-    * disconnect events
+    * SSL/TLS
     * inline flash service policy
 
 =head1 DISCLAIMER
