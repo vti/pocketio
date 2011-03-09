@@ -86,7 +86,7 @@ you need to make the following simple steps:
 =head1 TODO
 
     * SSL/TLS
-    * inline flash service policy
+    * inline flash policy server
 
 =head1 DISCLAIMER
 
