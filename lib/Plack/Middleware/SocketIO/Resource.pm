@@ -11,6 +11,7 @@ use Plack::Middleware::SocketIO::JSONPPolling;
 use Plack::Middleware::SocketIO::WebSocket;
 use Plack::Middleware::SocketIO::XHRMultipart;
 use Plack::Middleware::SocketIO::XHRPolling;
+use Plack::Middleware::SocketIO::Htmlfile;
 
 sub instance {
     my $class = shift;
@@ -92,6 +93,9 @@ sub _build_transport {
     }
     elsif ($type =~ m/^(?:flash|web)socket$/) {
         $class = 'WebSocket';
+    }
+    elsif ($type =~ m/^htmlfile$/) {
+        $class = 'Htmlfile';
     }
 
     return unless $class;

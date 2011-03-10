@@ -4,7 +4,15 @@
 =head1 Plack::Middleware::SocketIO
 
 L<Plack::Middleware::SocketIO> is a server implmentation of SocketIO in Perl.
-For now it supports all transports except C<Forever Iframe> (working on it).
+
+All the transports are supported.
+
+    WebSocket
+    Adobe® Flash® Socket
+    AJAX long polling
+    AJAX multipart streaming
+    Forever Iframe
+    JSONP Polling
 
 =head1 SocketIO
 
