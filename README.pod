@@ -91,9 +91,13 @@ you need to make the following simple steps:
 
 =back
 
+=head1 TLS/SSL
+
+For TLS/SSL a secure proxy is needed. C<stunnel> or L<App::TLSMe> is
+recommended.
+
 =head1 TODO
 
-    * SSL/TLS
     * inline flash policy server
 
 =head1 DISCLAIMER

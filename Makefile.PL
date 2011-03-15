@@ -40,7 +40,7 @@ WriteMakefile(
     PREREQ_PM => {
         'JSON'                => 0,
         'Plack'               => 0,
-        'Protocol::WebSocket' => 0.009,
+        'Protocol::WebSocket' => 0.009001,
         'Scalar::Util'        => 0,
         'Try::Tiny'           => 0
     },
