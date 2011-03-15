@@ -22,8 +22,10 @@ sub finalize {
     my $hs = Protocol::WebSocket::Handshake::Server->new_from_psgi($self->req->env);
     return unless $hs->parse($fh);
 
-    my $frame = Protocol::WebSocket::Frame->new;
+    return unless $hs->is_done;
+
     my $handle = $self->_build_handle($fh);
+    my $frame = Protocol::WebSocket::Frame->new;
 
     return sub {
         my $respond = shift;
