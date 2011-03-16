@@ -50,7 +50,8 @@ sub remove_connection {
     my $self = shift;
     my ($conn) = @_;
 
-    Plack::Middleware::SocketIO::Resource->instance->remove_connection($conn->id);
+    Plack::Middleware::SocketIO::Resource->instance->remove_connection(
+        $conn->id);
 
     return $self;
 }
@@ -128,3 +129,34 @@ sub _build_handle {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Plack::Middleware::SocketIO::Base - Base class for transports
+
+=head1 DESCRIPTION
+
+L<Plack::Middleware::SocketIO::Base> is a base class for the transports.
+
+=head1 METHODS
+
+=head2 C<new>
+
+=head2 C<env>
+
+=head2 C<req>
+
+=head2 C<resource>
+
+=head2 C<add_connection>
+
+=head2 C<remove_connection>
+
+=head2 C<find_connection_by_id>
+
+=head2 C<client_connected>
+
+=head2 C<client_disconnected>
+
+=cut

@@ -114,3 +114,35 @@ sub close {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Plack::Middleware::SocketIO::Handle - Handle
+
+=head1 DESCRIPTION
+
+L<Plack::Middleware::SocketIO::Handle> is a wrapper on top of
+L<AnyEvent::Handle>.
+
+=head1 METHODS
+
+=head2 C<new>
+
+=head2 C<heartbeat_timeout>
+
+=head2 C<on_eof>
+
+=head2 C<on_heartbeat>
+
+=head2 C<on_read>
+
+=head2 C<write>
+
+=head2 C<close>
+
+=head1 SEE ALSO
+
+L<AnyEvent::Handle>
+
+=cut

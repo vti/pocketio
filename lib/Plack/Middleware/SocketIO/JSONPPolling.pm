@@ -125,3 +125,21 @@ sub _wrap_into_jsonp {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Plack::Middleware::SocketIO::JSONPPolling - JSONPPolling transport
+
+=head1 DESCRIPTION
+
+L<Plack::Middleware::SocketIO::JSONPPolling> is a C<jsonp-polling> transport
+implementation.
+
+=head1 METHODS
+
+=head2 C<name>
+
+=head2 C<finalize>
+
+=cut

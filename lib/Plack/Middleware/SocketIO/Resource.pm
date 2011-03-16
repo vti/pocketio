@@ -112,3 +112,26 @@ sub _build_connection {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Plack::Middleware::SocketIO::Resource - Resource class
+
+=head1 DESCRIPTION
+
+L<Plack::Middleware::SocketIO::Resource> is a singleton connection pool.
+
+=head1 METHODS
+
+=head2 C<instance>
+
+=head2 C<connection>
+
+=head2 C<add_connection>
+
+=head2 C<remove_connection>
+
+=head2 C<finalize>
+
+=cut

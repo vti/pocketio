@@ -83,3 +83,18 @@ sub _build_frame {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Plack::Middleware::SocketIO::WebSocket - WebSocket transport
+
+=head1 DESCRIPTION
+
+L<Plack::Middleware::SocketIO::WebSocket> is a WebSocket transport implementation.
+
+=head1 SEE ALSO
+
+L<Protocol::WebSocket>
+
+=cut

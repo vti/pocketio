@@ -218,3 +218,53 @@ sub _parse_data {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Plack::Middleware::SocketIO::Connection - Connection class
+
+=head1 DESCRIPTION
+
+L<Plack::Middleware::SocketIO::Connection> is a connection class that
+incapsulates all the logic for bulding and parsing Socket.IO messages.
+
+=head1 METHODS
+
+=head2 C<new>
+
+=head2 C<id>
+
+=head2 C<type>
+
+=head2 C<disconnect>
+
+=head2 C<is_connected>
+
+=head2 C<on>
+
+=head2 C<on_disconnect>
+
+=head2 C<on_error>
+
+=head2 C<on_message>
+
+=head2 C<send_message>
+
+=head2 C<send_broadcast>
+
+=head1 INTERNAL METHODS
+
+=head2 C<connect>
+
+=head2 C<on_write>
+
+=head2 C<read>
+
+=head2 C<send_id_message>
+
+=head2 C<build_id_message>
+
+=head2 C<send_heartbeat>
+
+=cut

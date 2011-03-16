@@ -106,7 +106,7 @@ This middleware is in a very beta stage. API will be probably changed.
 
 =head1 CREDITS
 
-Socket.IO authors and contributors.
+Socket.IO author(s) and contributors.
 
 =head1 AUTHOR
 
@@ -117,6 +117,6 @@ Viacheslav Tykhanovskyi, C<vti@cpan.org>.
 Copyright (C) 2011, Viacheslav Tykhanovskyi
 
 This program is free software, you can redistribute it and/or modify it under
-the same terms as Perl 5.10.
+the terms of the Artistic License version 2.0.
 
 =cut

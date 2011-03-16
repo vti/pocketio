@@ -121,3 +121,15 @@ sub _wrap_into_script {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Plack::Middleware::SocketIO::Htmlfile - Htmlfile transport
+
+=head1 DESCRIPTION
+
+L<Plack::Middleware::SocketIO::Htmlfile> is a C<htmlfile> transport
+implementation.
+
+=cut

@@ -113,3 +113,23 @@ sub _finalize_send {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Plack::Middleware::SocketIO::XHRMultipart - XHRMultipart transport
+
+=head1 DESCRIPTION
+
+L<Plack::Middleware::SocketIO::XHRMultipart> is a C<xhr-multipart> transport
+implementation.
+
+=head1 METHODS
+
+=head2 C<new>
+
+=head2 C<name>
+
+=head2 C<finalize>
+
+=cut
