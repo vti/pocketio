@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Plack::Middleware';
 
-our $VERSION = '0.00900';
+our $VERSION = '0.00901';
 
 use Plack::Util::Accessor qw(resource handler);
 
