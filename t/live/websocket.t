@@ -3,12 +3,14 @@ use warnings;
 
 use lib 't/lib';
 
-BEGIN { $ENV{TEST_TRANSPORT} = 'websocket' }
-
 use Test::More;
 
-plan skip_all => 'set TEST_LIVE to run this test' unless $ENV{TEST_LIVE};
-plan tests => 1;
+BEGIN {
+    plan skip_all => 'set TEST_LIVE to run this test' unless $ENV{TEST_LIVE};
+    plan tests => 1;
+
+    $ENV{TEST_TRANSPORT} = 'websocket';
+}
 
 use Protocol::WebSocket::Handshake::Client;
 use Protocol::WebSocket::Frame;

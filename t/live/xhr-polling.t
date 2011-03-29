@@ -3,12 +3,14 @@ use warnings;
 
 use lib 't/lib';
 
-BEGIN { $ENV{TEST_TRANSPORT} = 'xhr-polling' }
-
 use Test::More;
 
-plan skip_all => 'set TEST_LIVE to run this test' unless $ENV{TEST_LIVE};
-plan tests => 2;
+BEGIN {
+    plan skip_all => 'set TEST_LIVE to run this test' unless $ENV{TEST_LIVE};
+    plan tests => 2;
+
+    $ENV{TEST_TRANSPORT} = 'xhr-polling';
+}
 
 use AnyEvent::Impl::Perl;
 use AnyEvent::HTTP;

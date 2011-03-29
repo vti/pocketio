@@ -3,12 +3,14 @@ use warnings;
 
 use lib 't/lib';
 
-BEGIN { $ENV{TEST_TRANSPORT} = 'xhr-multipart' }
-
 use Test::More;
 
-plan skip_all => 'set TEST_LIVE to run this test' unless $ENV{TEST_LIVE};
-plan tests => 3;
+BEGIN {
+    plan skip_all => 'set TEST_LIVE to run this test' unless $ENV{TEST_LIVE};
+    plan tests => 3;
+
+    $ENV{TEST_TRANSPORT} = 'xhr-multipart'
+}
 
 use AnyEvent::Impl::Perl;
 use AnyEvent::HTTP;

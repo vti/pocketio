@@ -1,5 +1,9 @@
 Revision history for perl module Plack::Middleware::SocketIO
 
+0.009002 2011-03-29
+
+ - Fixed live tests
+
 0.009001 2011-03-28
 
  - Fixed dependencies list
