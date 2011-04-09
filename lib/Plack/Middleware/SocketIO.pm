@@ -120,6 +120,14 @@ recommended.
 
 =over 4
 
+=item resource
+
+    enable "SocketIO",
+        resource => 'socket.io', ...;
+
+Specifies the path prefix under which all the requests are handled. This is done
+so the rest of your application won't interfere with Socket.IO specific calls.
+
 =item handler
 
     enable "SocketIO",
@@ -135,7 +143,8 @@ recommended.
 
 =item class, method
 
-    enable "SocketIO", class => 'MyHandler', method => 'run';
+    enable "SocketIO",
+        class => 'MyHandler', method => 'run';
 
     package MyHandler;
 

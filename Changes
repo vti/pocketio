@@ -1,5 +1,9 @@
 Revision history for perl module Plack::Middleware::SocketIO
 
+0.009003
+
+ - It is possible to pass class name and method instead of inline handler
+
 0.009002 2011-03-29
 
  - Fixed live tests
