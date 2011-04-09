@@ -8,7 +8,7 @@ use base 'Plack::Middleware';
 our $VERSION = '0.00903';
 
 use Plack::Util ();
-use Plack::Util::Accessor qw(resource handler class method);
+use Plack::Util::Accessor qw(resource handler class instance method);
 
 use Plack::Middleware::SocketIO::Resource;
 
@@ -42,15 +42,15 @@ sub _get_handler {
 
     return $self->handler if $self->handler;
 
-    my $class = $self->class
-      or die q{Either 'handler' or 'class' must be specified};
+    die q{Either 'handler', 'class' or 'instance' must be specified}
+      unless $self->instance || $self->class;
+
     my $method = $self->method || 'run';
 
-    Plack::Util::load_class($class);
+    my $instance = $self->instance
+      || do { Plack::Util::load_class($self->class); $self->class->new; };
 
-    $class->new;
-
-    return sub { $class->run };
+    return $instance->run;
 }
 
 1;
@@ -141,10 +141,15 @@ so the rest of your application won't interfere with Socket.IO specific calls.
             $socket->send_message('hello');
         };
 
-=item class, method
+=item class or instance, method
 
     enable "SocketIO",
         class => 'MyHandler', method => 'run';
+
+    # or
+
+    enable "SocketIO",
+        instance => MyHandler->new(foo => 'bar'), method => 'run';
 
     package MyHandler;
 
@@ -159,8 +164,9 @@ so the rest of your application won't interfere with Socket.IO specific calls.
         }
     }
 
-Loads C<class> using L<Plack::Util::load_class>, creates a new object and runs
-C<run> method expecting it to return an anonymous subroutine.
+Loads C<class> using L<Plack::Util::load_class>, creates a new object or uses
+a passed C<instance> and runs C<run> method expecting it to return an anonymous
+subroutine.
 
 =back
 
