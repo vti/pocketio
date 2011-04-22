@@ -81,9 +81,14 @@ you need to make the following simple steps:
         };
     };
 
-=item 3. Start L<Twiggy>
+=item 3. Start L<Twiggy> or L<Fliggy> (same as L<Twiggy> but with inlined Flash Policy server)
 
-    twiggy chat.psgi --listen :8080
+    $ sudo flash-policy-server &
+    $ twiggy chat.psgi --listen :8080
+
+    or
+
+    $ fliggy chat.psgi --listen :8080
 
 =item 4. Point your browser to
 
@@ -95,10 +100,6 @@ you need to make the following simple steps:
 
 For TLS/SSL a secure proxy is needed. C<stunnel> or L<App::TLSMe> is
 recommended.
-
-=head1 TODO
-
-    * inline flash policy server
 
 =head1 DISCLAIMER
 

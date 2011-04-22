@@ -1,0 +1,42 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use AnyEvent;
+use AnyEvent::Socket;
+use AnyEvent::Handle;
+use Getopt::Long;
+
+die 'Must be run by root' unless $> == 0 && $< == 0;
+
+my $domain = "localhost";
+my $daemonize;
+my $secure;
+
+GetOptions(
+    'daemonize' => \$daemonize,
+    'domain=s'  => \$domain,
+    'secure'    => \$secure
+) or die "Usage:\n";
+
+my $cv = AnyEvent->condvar;
+
+tcp_server undef, 843, sub {
+    my ($fh, $host, $port) = @_;
+
+    my $handle = AnyEvent::Handle->new(fh => $fh);
+
+    my $response = <<"EOF";
+<?xml version="1.0"?>
+<!DOCTYPE cross-domain-policy SYSTEM "/xml/dtds/cross-domain-policy.dtd">
+<cross-domain-policy>
+<site-control permitted-cross-domain-policies="master-only"/>
+<allow-access-from domain="$domain" to-ports="*" secure="false"/>
+</cross-domain-policy>
+EOF
+
+    $handle->push_write($response);
+};
+
+$cv->recv;
