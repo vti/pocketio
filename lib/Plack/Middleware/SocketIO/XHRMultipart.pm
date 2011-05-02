@@ -80,6 +80,14 @@ sub _finalize_stream {
             }
         );
 
+        $handle->on_error(
+            sub {
+                $self->client_disconnected($conn);
+
+                $handle->close;
+            }
+        );
+
         $handle->write(
             join "\x0d\x0a" => 'HTTP/1.1 200 OK',
             qq{Content-Type: multipart/x-mixed-replace;boundary="$boundary"},

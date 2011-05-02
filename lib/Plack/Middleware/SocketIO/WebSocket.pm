@@ -59,6 +59,14 @@ sub finalize {
                     }
                 );
 
+                $handle->on_error(
+                    sub {
+                        $self->client_disconnected($conn);
+
+                        $handle->close;
+                    }
+                );
+
                 $conn->on_write(
                     sub {
                         my $conn = shift;

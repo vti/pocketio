@@ -46,6 +46,14 @@ sub _finalize_stream {
             }
         );
 
+        $handle->on_error(
+            sub {
+                $self->client_disconnected($conn);
+
+                $handle->close;
+            }
+        );
+
         $handle->heartbeat_timeout(10);
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
