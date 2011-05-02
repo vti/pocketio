@@ -75,6 +75,19 @@ sub on_eof {
     return $self;
 }
 
+sub on_error {
+    my $self = shift;
+    my ($cb) = @_;
+
+    $self->{handle}->on_error(
+        sub {
+            $cb->($self);
+        }
+    );
+
+    return $self;
+}
+
 sub write {
     my $self = shift;
     my ($chunk, $cb) = @_;
