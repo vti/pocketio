@@ -118,7 +118,8 @@ sub close {
 
     $handle->timeout_reset;
 
-    shutdown $handle->fh, 1;
+    shutdown $handle->fh, 2;
+    close $handle->fh;
 
     $handle->destroy;
     undef $handle;
