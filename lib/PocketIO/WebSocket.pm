@@ -1,14 +1,14 @@
-package Plack::Middleware::SocketIO::WebSocket;
+package PocketIO::WebSocket;
 
 use strict;
 use warnings;
 
-use base 'Plack::Middleware::SocketIO::Base';
+use base 'PocketIO::Base';
 
 use Protocol::WebSocket::Frame;
 use Protocol::WebSocket::Handshake::Server;
 
-use Plack::Middleware::SocketIO::Handle;
+use PocketIO::Handle;
 
 sub name {'websocket'}
 
@@ -98,11 +98,11 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::SocketIO::WebSocket - WebSocket transport
+PocketIO::WebSocket - WebSocket transport
 
 =head1 DESCRIPTION
 
-L<Plack::Middleware::SocketIO::WebSocket> is a WebSocket transport implementation.
+L<PocketIO::WebSocket> is a WebSocket transport implementation.
 
 =head1 SEE ALSO
 

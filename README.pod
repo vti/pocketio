@@ -1,9 +1,9 @@
 
 =pod
 
-=head1 Plack::Middleware::SocketIO
+=head1 PocketIO
 
-L<Plack::Middleware::SocketIO> is a server implmentation of SocketIO in Perl.
+L<PocketIO> is a server implementation of SocketIO in Perl.
 
 All the transports are supported.
 
@@ -30,10 +30,11 @@ you need to make the following simple steps:
 
 =item 2. Save the shown .psgi file, changing <$path_to_socket_io> so it points to the Socket.IO-node files.
 
-    use Plack::Builder;
     use Plack::App::File;
+    use Plack::Builder;
     use Plack::Middleware::Static;
-    use Plack::Middleware::SocketIO;
+
+    use PocketIO;
 
     my $path_to_socket_io = "/path/to/Socket.IO-node";
 
@@ -41,14 +42,8 @@ you need to make the following simple steps:
         mount '/socket.io/socket.io.js' => Plack::App::File->new(
             file => "$path_to_socket_io/support/socket.io-client/socket.io.js");
 
-        mount '/' => builder {
-            enable "Static",
-              path => qr/\.(?:js|css|jpe?g|gif|png|html?|js|css|swf|ico)$/,
-              root => "$path_to_socket_io/example";
-
-            enable "SimpleLogger", level => 'debug';
-
-            enable "SocketIO", handler => sub {
+        mount '/socket.io' => PocketIO->new(
+            handler => sub {
                 my $self = shift;
 
                 $self->on_message(
@@ -56,7 +51,8 @@ you need to make the following simple steps:
                         my $self = shift;
                         my ($message) = @_;
 
-                        $self->send_broadcast({message => [$self->id, $message]});
+                        $self->send_broadcast(
+                            {message => [$self->id, $message]});
                     }
                 );
 
@@ -69,8 +65,17 @@ you need to make the following simple steps:
 
                 $self->send_message({buffer => []});
 
-                $self->send_broadcast({announcement => $self->id . ' connected'});
-            };
+                $self->send_broadcast(
+                    {announcement => $self->id . ' connected'});
+            }
+        );
+
+        mount '/' => builder {
+            enable "Static",
+              path => qr/\.(?:js|css|jpe?g|gif|png|swf|ico)$/,
+              root => "$path_to_socket_io/example";
+
+            enable "SimpleLogger", level => 'debug';
 
             sub {
                 [   200,
@@ -103,7 +108,7 @@ recommended.
 
 =head1 DISCLAIMER
 
-This middleware is in a very beta stage. API will be probably changed.
+This application is in a very beta stage. API will be probably changed.
 
 =head1 CREDITS
 

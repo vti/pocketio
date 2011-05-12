@@ -1,4 +1,4 @@
-package Plack::Middleware::SocketIO::Handle;
+package PocketIO::Handle;
 
 use strict;
 use warnings;
@@ -132,11 +132,11 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::SocketIO::Handle - Handle
+PocketIO::Handle - Handle
 
 =head1 DESCRIPTION
 
-L<Plack::Middleware::SocketIO::Handle> is a wrapper on top of
+L<PocketIO::Handle> is a wrapper on top of
 L<AnyEvent::Handle>.
 
 =head1 METHODS

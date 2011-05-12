@@ -1,4 +1,4 @@
-package Plack::Middleware::SocketIO::Connection;
+package PocketIO::Connection;
 
 use strict;
 use warnings;
@@ -133,7 +133,7 @@ sub send_broadcast {
     my ($message) = @_;
 
     my @conn = grep { $_->is_connected && $_->id ne $self->id }
-      Plack::Middleware::SocketIO::Resource->instance->connections;
+      PocketIO::Resource->instance->connections;
 
     foreach my $conn (@conn) {
         $conn->send_message($message);
@@ -222,11 +222,11 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::SocketIO::Connection - Connection class
+PocketIO::Connection - Connection class
 
 =head1 DESCRIPTION
 
-L<Plack::Middleware::SocketIO::Connection> is a connection class that
+L<PocketIO::Connection> is a connection class that
 incapsulates all the logic for bulding and parsing Socket.IO messages.
 
 =head1 METHODS

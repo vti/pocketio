@@ -1,4 +1,4 @@
-package Plack::Middleware::SocketIO::Base;
+package PocketIO::Base;
 
 use strict;
 use warnings;
@@ -9,8 +9,8 @@ use Try::Tiny;
 use Scalar::Util qw(weaken);
 
 use Plack::Request;
-use Plack::Middleware::SocketIO::Handle;
-use Plack::Middleware::SocketIO::Resource;
+use PocketIO::Handle;
+use PocketIO::Resource;
 
 sub new {
     my $class = shift;
@@ -26,21 +26,10 @@ sub new {
 sub req { shift->{req} }
 sub env { shift->{req}->{env} }
 
-sub resource {
-    my $self = shift;
-    my ($resource) = @_;
-
-    return $self->{resource} unless defined $resource;
-
-    $self->{resource} = $resource;
-
-    return $self;
-}
-
 sub add_connection {
     my $self = shift;
 
-    return Plack::Middleware::SocketIO::Resource->instance->add_connection(
+    return PocketIO::Resource->instance->add_connection(
         type => $self->name,
         @_
     );
@@ -50,7 +39,7 @@ sub remove_connection {
     my $self = shift;
     my ($conn) = @_;
 
-    Plack::Middleware::SocketIO::Resource->instance->remove_connection(
+    PocketIO::Resource->instance->remove_connection(
         $conn->id);
 
     return $self;
@@ -60,7 +49,7 @@ sub find_connection_by_id {
     my $self = shift;
     my ($id) = @_;
 
-    return Plack::Middleware::SocketIO::Resource->instance->connection($id);
+    return PocketIO::Resource->instance->connection($id);
 }
 
 sub client_connected {
@@ -125,7 +114,7 @@ sub _get_logger {
 sub _build_handle {
     my $self = shift;
 
-    return Plack::Middleware::SocketIO::Handle->new(@_);
+    return PocketIO::Handle->new(@_);
 }
 
 1;
@@ -133,11 +122,11 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::SocketIO::Base - Base class for transports
+PocketIO::Base - Base class for transports
 
 =head1 DESCRIPTION
 
-L<Plack::Middleware::SocketIO::Base> is a base class for the transports.
+L<PocketIO::Base> is a base class for the transports.
 
 =head1 METHODS
 
@@ -146,8 +135,6 @@ L<Plack::Middleware::SocketIO::Base> is a base class for the transports.
 =head2 C<env>
 
 =head2 C<req>
-
-=head2 C<resource>
 
 =head2 C<add_connection>
 

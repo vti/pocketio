@@ -3,9 +3,9 @@ use warnings;
 
 use Test::More tests => 7;
 
-use_ok('Plack::Middleware::SocketIO::Connection');
+use_ok('PocketIO::Connection');
 
-my $conn = Plack::Middleware::SocketIO::Connection->new;
+my $conn = PocketIO::Connection->new;
 ok $conn;
 
 my $output = '';

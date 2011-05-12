@@ -1,16 +1,16 @@
-package Plack::Middleware::SocketIO;
+package PocketIO;
 
 use strict;
 use warnings;
 
-use base 'Plack::Middleware';
+use base 'Plack::Component';
 
-our $VERSION = '0.00903';
+our $VERSION = '0.00904';
 
 use Plack::Util ();
 use Plack::Util::Accessor qw(resource handler class instance method);
 
-use Plack::Middleware::SocketIO::Resource;
+use PocketIO::Resource;
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -24,17 +24,10 @@ sub call {
     my $self = shift;
     my ($env) = @_;
 
-    my $resource = $self->resource || 'socket.io';
-    $resource = quotemeta $resource;
+    my $instance = PocketIO::Resource->instance;
 
-    if (defined $env->{PATH_INFO} && $env->{PATH_INFO} =~ m{^/$resource/}) {
-        my $instance = Plack::Middleware::SocketIO::Resource->instance;
-
-        return $instance->finalize($env, $self->handler)
-          || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
-    }
-
-    return $self->app->($env);
+    return $instance->finalize($env, $self->handler)
+      || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
 }
 
 sub _get_handler {
@@ -58,7 +51,7 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::SocketIO - Socket.IO middleware
+PocketIO - Socket.IO middleware
 
 =head1 SYNOPSIS
 
@@ -93,7 +86,7 @@ Plack::Middleware::SocketIO - Socket.IO middleware
 
 =head1 DESCRIPTION
 
-L<Plack::Middleware::SocketIO> is a server implmentation of SocketIO in Perl.
+L<PocketIO> is a server implmentation of SocketIO in Perl.
 
 =head2 SocketIO
 

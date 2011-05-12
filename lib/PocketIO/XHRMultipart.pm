@@ -1,11 +1,11 @@
-package Plack::Middleware::SocketIO::XHRMultipart;
+package PocketIO::XHRMultipart;
 
 use strict;
 use warnings;
 
-use base 'Plack::Middleware::SocketIO::Base';
+use base 'PocketIO::Base';
 
-use Plack::Middleware::SocketIO::Handle;
+use PocketIO::Handle;
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -21,15 +21,13 @@ sub finalize {
     my $self = shift;
     my ($cb) = @_;
 
-    my $req      = $self->req;
-    my $name     = $self->name;
-    my $resource = $self->resource;
+    my $req  = $self->req;
+    my $name = $self->name;
 
     return $self->_finalize_stream($req, $cb) if $req->method eq 'GET';
 
     return
-      unless $req->method eq 'POST'
-          && $req->path =~ m{^/$resource/$name/(\d+)/send$};
+      unless $req->method eq 'POST' && $req->path =~ m{^/$name/(\d+)/send$};
 
     return $self->_finalize_send($req, $1);
 }
@@ -125,11 +123,11 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::SocketIO::XHRMultipart - XHRMultipart transport
+PocketIO::XHRMultipart - XHRMultipart transport
 
 =head1 DESCRIPTION
 
-L<Plack::Middleware::SocketIO::XHRMultipart> is a C<xhr-multipart> transport
+L<PocketIO::XHRMultipart> is a C<xhr-multipart> transport
 implementation.
 
 =head1 METHODS

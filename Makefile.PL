@@ -39,6 +39,7 @@ WriteMakefile(
 
     PREREQ_PM => {
         'AnyEvent'            => 0,
+        'HTTP::Body'          => 0,
         'JSON'                => 0,
         'Plack'               => 0,
         'Protocol::WebSocket' => 0.009001,

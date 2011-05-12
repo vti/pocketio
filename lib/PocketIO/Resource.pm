@@ -1,17 +1,17 @@
-package Plack::Middleware::SocketIO::Resource;
+package PocketIO::Resource;
 
 use strict;
 use warnings;
 
 use Plack::Request;
-use Plack::Middleware::SocketIO::Connection;
-use Plack::Middleware::SocketIO::Handle;
+use PocketIO::Connection;
+use PocketIO::Handle;
 
-use Plack::Middleware::SocketIO::JSONPPolling;
-use Plack::Middleware::SocketIO::WebSocket;
-use Plack::Middleware::SocketIO::XHRMultipart;
-use Plack::Middleware::SocketIO::XHRPolling;
-use Plack::Middleware::SocketIO::Htmlfile;
+use PocketIO::JSONPPolling;
+use PocketIO::WebSocket;
+use PocketIO::XHRMultipart;
+use PocketIO::XHRPolling;
+use PocketIO::Htmlfile;
 
 sub instance {
     my $class = shift;
@@ -57,11 +57,10 @@ sub finalize {
     my $self = shift;
     my ($env, $cb) = @_;
 
-    my ($resource, $type) = $env->{PATH_INFO} =~ m{^/([^\/]+)/([^\/]+)/?};
-    return unless $resource && $type;
+    my ($type) = $env->{PATH_INFO} =~ m{^/([^\/]+)/?};
+    return unless $type;
 
-    my $transport =
-      $self->_build_transport($type, env => $env, resource => $resource);
+    my $transport = $self->_build_transport($type, env => $env);
     return unless $transport;
 
     return $transport->finalize($cb);
@@ -100,7 +99,7 @@ sub _build_transport {
 
     return unless $class;
 
-    $class = "Plack::Middleware::SocketIO::$class";
+    $class = "PocketIO::$class";
 
     return $class->new(@args);
 }
@@ -108,7 +107,7 @@ sub _build_transport {
 sub _build_connection {
     my $self = shift;
 
-    return Plack::Middleware::SocketIO::Connection->new(@_);
+    return PocketIO::Connection->new(@_);
 }
 
 1;
@@ -116,11 +115,11 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::SocketIO::Resource - Resource class
+PocketIO::Resource - Resource class
 
 =head1 DESCRIPTION
 
-L<Plack::Middleware::SocketIO::Resource> is a singleton connection pool.
+L<PocketIO::Resource> is a singleton connection pool.
 
 =head1 METHODS
 

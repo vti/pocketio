@@ -1,31 +1,30 @@
-package Plack::Middleware::SocketIO::XHRPolling;
+package PocketIO::JSONPPolling;
 
 use strict;
 use warnings;
 
-use base 'Plack::Middleware::SocketIO::Base';
+use base 'PocketIO::Base';
 
-sub name {'xhr-polling'}
+sub name {'jsonp-polling'}
 
 sub finalize {
     my $self = shift;
     my ($cb) = @_;
 
-    my $req      = $self->req;
-    my $resource = $self->resource;
-    my $name     = $self->name;
+    my $req  = $self->req;
+    my $name = $self->name;
 
     if ($req->method eq 'GET') {
         return $self->_finalize_init($cb)
-          if $req->path =~ m{^/$resource/$name//\d+$};
+          if $req->path =~ m{^/$name//\d+/\d+$};
 
         return $self->_finalize_stream($1)
-          if $req->path =~ m{^/$resource/$name/(\d+)/\d+$};
+          if $req->path =~ m{^/$name/(\d+)/\d+/\d+$};
     }
 
     return
       unless $req->method eq 'POST'
-          && $req->path_info =~ m{^/$resource/$name/(\d+)/send$};
+          && $req->path =~ m{^/$name/(\d+)/\d+/\d+$};
 
     return $self->_finalize_send($req, $1);
 }
@@ -36,7 +35,7 @@ sub _finalize_init {
 
     my $conn = $self->add_connection(on_connect => $cb);
 
-    my $body = $conn->build_id_message;
+    my $body = $self->_wrap_into_jsonp($conn->build_id_message);
 
     return [
         200,
@@ -81,8 +80,10 @@ sub _finalize_stream {
 
         $conn->on_write(
             sub {
-                my $self = shift;
+                my $conn = shift;
                 my ($message) = @_;
+
+                $message = $self->_wrap_into_jsonp($message);
 
                 $handle->write(
                     join "\x0d\x0a" => 'HTTP/1.1 200 OK',
@@ -90,7 +91,7 @@ sub _finalize_stream {
                     'Content-Length: ' . length($message), '', $message
                 );
 
-                # TODO: set reconnect timeout
+                # TODO: reconnect timeout
 
                 $handle->close;
             }
@@ -122,16 +123,24 @@ sub _finalize_send {
     return $retval;
 }
 
+sub _wrap_into_jsonp {
+    my $self = shift;
+    my ($message) = @_;
+
+    $message =~ s/"/\\"/g;
+    return qq{io.JSONP[0]._("$message");};
+}
+
 1;
 __END__
 
 =head1 NAME
 
-Plack::Middleware::SocketIO::XHRPolling - XHRPolling transport
+PocketIO::JSONPPolling - JSONPPolling transport
 
 =head1 DESCRIPTION
 
-L<Plack::Middleware::SocketIO::XHRPolling> is a C<xhr-polling> transport
+L<PocketIO::JSONPPolling> is a C<jsonp-polling> transport
 implementation.
 
 =head1 METHODS
