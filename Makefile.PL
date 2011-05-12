@@ -10,9 +10,9 @@ use ExtUtils::MakeMaker;
 my ($mm) = $ExtUtils::MakeMaker::VERSION =~ /^([^_]+)/;
 
 WriteMakefile(
-    NAME         => 'Plack::Middleware::SocketIO',
-    VERSION_FROM => 'lib/Plack/Middleware/SocketIO.pm',
-    ABSTRACT     => 'Socket.IO Plack middleware',
+    NAME         => 'PocketIO',
+    VERSION_FROM => 'lib/PocketIO.pm',
+    ABSTRACT     => 'Socket.IO Plack app',
     AUTHOR       => 'Viacheslav Tykhanovskyi <vti@cpan.org>',
 
     ($mm < 6.3002 ? () : ('LICENSE' => 'artistic_2')),
@@ -24,9 +24,9 @@ WriteMakefile(
                 resources => {
                     license => 'http://dev.perl.org/licenses/',
                     repository =>
-                      'http://github.com/vti/plack-middleware-socketio',
+                      'http://github.com/vti/pocketio',
                     bugtracker =>
-                      'http://github.com/vti/plack-middleware-socketio/issues'
+                      'http://github.com/vti/pocketio/issues'
                 },
                 no_index => {directory => [qw/t/]}
             },
