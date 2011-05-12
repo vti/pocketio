@@ -42,7 +42,7 @@ WriteMakefile(
         'HTTP::Body'          => 0,
         'JSON'                => 0,
         'Plack'               => 0,
-        'Protocol::WebSocket' => 0.009001,
+        'Protocol::WebSocket' => 0.009002,
         'Scalar::Util'        => 0,
         'Try::Tiny'           => 0
     },

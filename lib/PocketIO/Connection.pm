@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use JSON ();
+use Encode ();
 use Try::Tiny;
 
 sub new {
@@ -98,7 +99,7 @@ sub read {
 
     $self->{last_activity} = time;
 
-    $self->{data} .= $data;
+    $self->{data} .= Encode::decode('UTF-8', $data);
 
     while (my $message = $self->_parse_data) {
         $self->on_message->($self, $message);
@@ -121,7 +122,7 @@ sub send_message {
 
     $self->{last_activity} = time;
 
-    $message = $self->_build_message($message);
+    $message = $self->build_message($message);
 
     $self->on_write->($self, $message);
 
@@ -157,18 +158,21 @@ sub send_id_message {
 sub build_id_message {
     my $self = shift;
 
-    return $self->_build_message($self->id);
+    return $self->build_message($self->id);
 }
 
-sub _build_message {
+sub build_message {
     my $self = shift;
     my ($message) = @_;
 
     if (ref $message) {
         $message = '~j~' . JSON::encode_json($message);
     }
+    else {
+        $message = Encode::encode('UTF-8', $message);
+    }
 
-    return '~m~' . length($message) . '~m~' . $message;
+    return '~m~' . length(Encode::decode('UTF-8', $message)) . '~m~' . $message;
 }
 
 sub _generate_id {
@@ -200,7 +204,7 @@ sub _parse_data {
                 my $json;
 
                 try {
-                    $json = JSON::decode_json($1);
+                    $json = JSON::decode_json(Encode::encode('UTF-8', $1));
                 };
 
                 return $json if defined $json;

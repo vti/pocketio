@@ -1,4 +1,10 @@
-Revision history for perl module Plack::Middleware::SocketIO
+Revision history for perl module PocketIO
+
+0.009004
+
+ - Renamed to PocketIO
+ - Implemented as a Plack app instead of middleware
+ - Fixed UTF issues
 
 0.009003
 

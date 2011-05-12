@@ -5,6 +5,8 @@ use warnings;
 
 use base 'PocketIO::Base';
 
+use Encode ();
+
 use Protocol::WebSocket::Frame;
 use Protocol::WebSocket::Handshake::Server;
 
@@ -45,7 +47,7 @@ sub finalize {
 
                         $frame->append($_[0]);
 
-                        while (my $message = $frame->next) {
+                        while (my $message = $frame->next_bytes) {
                             $conn->read($message);
                         }
                     }
@@ -70,11 +72,11 @@ sub finalize {
                 $conn->on_write(
                     sub {
                         my $conn = shift;
-                        my ($message) = @_;
+                        my ($bytes) = @_;
 
-                        $message = $self->_build_frame($message);
+                        $bytes = $self->_build_frame($bytes);
 
-                        $handle->write($message);
+                        $handle->write($bytes);
                     }
                 );
 
@@ -88,9 +90,9 @@ sub finalize {
 
 sub _build_frame {
     my $self = shift;
-    my ($message) = @_;
+    my ($bytes) = @_;
 
-    return Protocol::WebSocket::Frame->new($message)->to_string;
+    return Protocol::WebSocket::Frame->new($bytes)->to_bytes;
 }
 
 1;
