@@ -78,24 +78,20 @@ sub _finalize_stream {
         $handle->heartbeat_timeout(10);
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
-        $conn->on_write(
-            sub {
-                my $conn = shift;
-                my ($message) = @_;
+        if ($conn->has_staged_messages) {
+            $self->_write($handle, $conn->staged_message);
+        }
+        else {
+            $conn->on_write(
+                sub {
+                    my $conn = shift;
+                    my ($message) = @_;
 
-                $message = $self->_wrap_into_jsonp($message);
-
-                $handle->write(
-                    join "\x0d\x0a" => 'HTTP/1.1 200 OK',
-                    'Content-Type: text/plain',
-                    'Content-Length: ' . length($message), '', $message
-                );
-
-                # TODO: reconnect timeout
-
-                $handle->close;
-            }
-        );
+                    $conn->on_write(undef);
+                    $self->_write($handle, $message);
+                }
+            );
+        }
 
         $self->client_connected($conn);
     };
@@ -121,6 +117,24 @@ sub _finalize_send {
     $conn->read($data);
 
     return $retval;
+}
+
+sub _write {
+    my $self = shift;
+    my ($handle, $message) = @_;
+
+    $message = $self->_wrap_into_jsonp($message);
+
+    $handle->write(
+        join(
+            "\x0d\x0a" => 'HTTP/1.1 200 OK',
+            'Content-Type: text/plain',
+            'Content-Length: ' . length($message), '', $message
+        ),
+        sub {
+            $handle->close;
+        }
+    );
 }
 
 sub _wrap_into_jsonp {

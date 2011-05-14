@@ -77,25 +77,39 @@ sub _finalize_stream {
         $handle->heartbeat_timeout(10);
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
-        $conn->on_write(
-            sub {
-                my $self = shift;
-                my ($message) = @_;
+        if ($conn->has_staged_messages) {
+            $self->_write($handle, $conn->staged_message);
+        }
+        else {
+            $conn->on_write(
+                sub {
+                    my $conn = shift;
+                    my ($message) = @_;
 
-                $handle->write(
-                    join "\x0d\x0a" => 'HTTP/1.1 200 OK',
-                    'Content-Type: text/plain',
-                    'Content-Length: ' . length($message), '', $message
-                );
-
-                # TODO: set reconnect timeout
-
-                $handle->close;
-            }
-        );
+                    $conn->on_write(undef);
+                    $self->_write($handle, $message);
+                }
+            );
+        }
 
         $self->client_connected($conn);
     };
+}
+
+sub _write {
+    my $self = shift;
+    my ($handle, $message) = @_;
+
+    $handle->write(
+        join(
+            "\x0d\x0a" => 'HTTP/1.1 200 OK',
+            'Content-Type: text/plain',
+            'Content-Length: ' . length($message), '', $message
+        ),
+        sub {
+            $handle->close;
+        }
+    );
 }
 
 sub _finalize_send {

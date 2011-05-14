@@ -13,13 +13,15 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
+    $self->{max_messages_to_stage} ||= 32;
+    $self->{messages} = [];
+
     $self->{on_connect}    ||= sub { };
     $self->{on_message}    ||= sub { };
     $self->{on_disconnect} ||= sub { };
     $self->{on_error}      ||= sub { };
 
     $self->{data} = '';
-    $self->{on_write}   ||= sub { };
 
     $self->{last_activity} = 0;
 
@@ -80,13 +82,13 @@ sub on_write      { shift->on(write      => @_) }
 
 sub on {
     my $self = shift;
-    my ($event, $cb) = @_;
+    my $event = shift;
 
     my $name = "on_$event";
 
-    return $self->{$name} unless $cb;
+    return $self->{$name} unless @_;
 
-    $self->{$name} = $cb;
+    $self->{$name} = $_[0];
 
     return $self;
 }
@@ -124,9 +126,37 @@ sub send_message {
 
     $message = $self->build_message($message);
 
-    $self->on_write->($self, $message);
+    if ($self->on_write) {
+        $self->on_write->($self, $message);
+    }
+    else {
+        $self->stage_message($message);
+    }
 
     return $self;
+}
+
+sub stage_message {
+    my $self = shift;
+    my ($message) = @_;
+
+    return if @{$self->{messages}} >= $self->{max_messages_to_stage};
+
+    push @{$self->{messages}}, $message;
+
+    return $self;
+}
+
+sub has_staged_messages {
+    my $self = shift;
+
+    return @{$self->{messages}} > 0;
+}
+
+sub staged_message {
+    my $self = shift;
+
+    return shift @{$self->{messages}};
 }
 
 sub send_broadcast {
