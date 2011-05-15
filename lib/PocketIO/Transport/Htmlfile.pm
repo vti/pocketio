@@ -6,6 +6,7 @@ use warnings;
 use base 'PocketIO::Transport::Base';
 
 use HTTP::Body;
+use PocketIO::Response::Chunked;
 
 sub name {'htmlfile'}
 
@@ -95,14 +96,6 @@ sub _dispatch_send {
     my $conn = $self->find_connection($id);
     return unless $conn;
 
-    my $retval = [
-        200,
-        [   'Content-Type'      => 'text/plain',
-            'Transfer-Encoding' => 'chunked'
-        ],
-        ["2\x0d\x0aok\x0d\x0a" . "0\x0d\x0a\x0d\x0a"]
-    ];
-
     my $raw_body = $req->content;
     my $zeros = $raw_body =~ s/\0//g;
 
@@ -114,7 +107,7 @@ sub _dispatch_send {
 
     $conn->read($data);
 
-    return $retval;
+    return PocketIO::Response::Chunked->finalize;
 }
 
 sub _wrap_into_script {

@@ -6,6 +6,7 @@ use warnings;
 use base 'PocketIO::Transport::Base';
 
 use PocketIO::Handle;
+use PocketIO::Response::Chunked;
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -104,17 +105,11 @@ sub _dispatch_send {
     my $conn = $self->find_connection($id);
     return unless $conn;
 
-    my $retval = [
-        200,
-        ['Content-Type' => 'text/plain', 'Transfer-Encoding' => 'chunked'],
-        ["2\x0d\x0aok\x0d\x0a" . "0\x0d\x0a\x0d\x0a"]
-    ];
-
     my $data = $req->body_parameters->get('data');
 
     $conn->read($data);
 
-    return $retval;
+    return PocketIO::Response::Chunked->finalize;
 }
 
 1;
