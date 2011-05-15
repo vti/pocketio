@@ -3,6 +3,7 @@ package PocketIO::Connection;
 use strict;
 use warnings;
 
+use AnyEvent;
 use JSON ();
 use Encode ();
 use Try::Tiny;
@@ -13,17 +14,18 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
+    $self->{connect_timeout} ||= 15;
+
     $self->{max_messages_to_stage} ||= 32;
     $self->{messages} = [];
 
-    $self->{on_connect}    ||= sub { };
-    $self->{on_message}    ||= sub { };
-    $self->{on_disconnect} ||= sub { };
-    $self->{on_error}      ||= sub { };
+    $self->{on_connection_failed} ||= sub { };
+    $self->{on_connect}           ||= sub { };
+    $self->{on_message}           ||= sub { };
+    $self->{on_disconnect}        ||= sub { };
+    $self->{on_error}             ||= sub { };
 
     $self->{data} = '';
-
-    $self->{last_activity} = 0;
 
     return $self;
 }
@@ -34,19 +36,32 @@ sub is_connected {
     return $self->{is_connected};
 }
 
-sub connect {
+sub connecting {
     my $self = shift;
+
+    $self->{connect_timer} = AnyEvent->timer(
+        after => $self->{connect_timeout},
+        cb    => sub {
+            if (!$self->is_connected) {
+                $self->{on_connection_failed}->($self);
+            }
+        }
+    );
+}
+
+sub connected {
+    my $self = shift;
+
+    delete $self->{connect_timer};
 
     $self->{is_connected} = 1;
 
     $self->{on_connect}->($self);
 
-    $self->{last_activity} = time;
-
     return $self;
 }
 
-sub disconnect {
+sub disconnected {
     my $self = shift;
 
     $self->{is_connected} = 0;
@@ -62,17 +77,6 @@ sub id {
     $self->{id} ||= $self->_generate_id;
 
     return $self->{id};
-}
-
-sub type {
-    my $self = shift;
-    my ($type) = @_;
-
-    return $self->{type} unless defined $type;
-
-    $self->{type} = $type;
-
-    return $self;
 }
 
 sub on_message    { shift->on(message    => @_) }
@@ -99,8 +103,6 @@ sub read {
 
     return $self unless defined $data;
 
-    $self->{last_activity} = time;
-
     $self->{data} .= Encode::decode('UTF-8', $data);
 
     while (my $message = $self->_parse_data) {
@@ -121,8 +123,6 @@ sub send_heartbeat {
 sub send_message {
     my $self = shift;
     my ($message) = @_;
-
-    $self->{last_activity} = time;
 
     $message = $self->build_message($message);
 
@@ -175,8 +175,6 @@ sub send_broadcast {
 
 sub send_id_message {
     my $self = shift;
-
-    $self->{last_activity} = time;
 
     my $message = $self->build_id_message;
 

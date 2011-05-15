@@ -43,6 +43,8 @@ sub add_connection {
 
     $self->{connections}->{$conn->id} = $conn;
 
+    $conn->connecting;
+
     return $conn;
 }
 
@@ -107,7 +109,8 @@ sub _build_transport {
 sub _build_connection {
     my $self = shift;
 
-    return PocketIO::Connection->new(@_);
+    return PocketIO::Connection->new(@_,
+        on_connection_failed => sub { $self->remove_connection($_[0]->id) });
 }
 
 1;

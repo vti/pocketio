@@ -60,14 +60,14 @@ sub client_connected {
 
     $self->_log_client_connected($conn);
 
-    $conn->connect;
+    $conn->connected;
 }
 
 sub client_disconnected {
     my $self = shift;
     my ($conn) = @_;
 
-    $conn->disconnect;
+    $conn->disconnected;
 
     $self->_log_client_disconnected($conn);
 
