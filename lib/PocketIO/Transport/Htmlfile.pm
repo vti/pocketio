@@ -52,7 +52,6 @@ sub _finalize_stream {
             }
         );
 
-        $handle->heartbeat_timeout(10);
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
         my $id = $self->_wrap_into_script($conn->build_id_message);

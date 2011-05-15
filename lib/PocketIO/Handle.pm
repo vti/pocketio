@@ -12,6 +12,8 @@ sub new {
     my $self = {handle => AnyEvent::Handle->new(fh => $fh)};
     bless $self, $class;
 
+    $self->{heartbeat_timeout} ||= 10;
+
     $fh->autoflush;
 
     $self->{handle}->no_delay(1);
@@ -20,15 +22,6 @@ sub new {
 
     # This is needed for the correct EOF handling
     $self->{handle}->on_read(sub { });
-
-    return $self;
-}
-
-sub heartbeat_timeout {
-    my $self = shift;
-    my ($timeout) = @_;
-
-    $self->{heartbeat_timeout} = $timeout;
 
     return $self;
 }

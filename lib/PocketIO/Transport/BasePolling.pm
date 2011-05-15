@@ -57,7 +57,6 @@ sub _finalize_stream {
             }
         );
 
-        $handle->heartbeat_timeout(10);
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
         if ($conn->has_staged_messages) {

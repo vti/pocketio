@@ -38,7 +38,6 @@ sub finalize {
 
                 my $conn = $self->add_connection(on_connect => $cb);
 
-                $handle->heartbeat_timeout(10);
                 $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
                 $handle->on_read(
