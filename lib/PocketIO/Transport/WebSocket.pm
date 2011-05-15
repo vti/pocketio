@@ -5,8 +5,6 @@ use warnings;
 
 use base 'PocketIO::Transport::Base';
 
-use Encode ();
-
 use Protocol::WebSocket::Frame;
 use Protocol::WebSocket::Handshake::Server;
 
