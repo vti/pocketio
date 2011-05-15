@@ -24,9 +24,7 @@ sub call {
     my $self = shift;
     my ($env) = @_;
 
-    my $instance = PocketIO::Resource->instance;
-
-    return $instance->dispatch($env, $self->handler)
+    return PocketIO::Resource->dispatch($env, $self->handler)
       || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
 }
 

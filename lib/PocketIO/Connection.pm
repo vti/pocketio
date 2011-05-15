@@ -8,6 +8,8 @@ use JSON ();
 use Encode ();
 use Try::Tiny;
 
+use PocketIO::Pool;
+
 use constant DEBUG => $ENV{POCKETIO_CONNECTION_DEBUG};
 
 sub new {
@@ -208,7 +210,7 @@ sub send_broadcast {
     my ($message) = @_;
 
     my @conn = grep { $_->is_connected && $_->id ne $self->id }
-      PocketIO::Resource->instance->connections;
+      PocketIO::Pool->instance->connections;
 
     foreach my $conn (@conn) {
         $conn->send_message($message);
