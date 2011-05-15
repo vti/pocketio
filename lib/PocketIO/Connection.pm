@@ -94,7 +94,7 @@ sub reconnected {
 
     DEBUG && warn "State 'reconnected'\n";
 
-    delete $self->{reconnect_timeout};
+    delete $self->{reconnect_timer};
 
     $self->on('reconnect')->($self);
 
