@@ -1,9 +1,9 @@
-package PocketIO::WebSocket;
+package PocketIO::Transport::WebSocket;
 
 use strict;
 use warnings;
 
-use base 'PocketIO::Base';
+use base 'PocketIO::Transport::Base';
 
 use Encode ();
 

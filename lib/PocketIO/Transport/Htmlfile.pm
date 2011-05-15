@@ -1,9 +1,9 @@
-package PocketIO::Htmlfile;
+package PocketIO::Transport::Htmlfile;
 
 use strict;
 use warnings;
 
-use base 'PocketIO::Base';
+use base 'PocketIO::Transport::Base';
 
 use HTTP::Body;
 

@@ -3,11 +3,11 @@ package PocketIO::Resource;
 use strict;
 use warnings;
 
-use PocketIO::JSONPPolling;
-use PocketIO::WebSocket;
-use PocketIO::XHRMultipart;
-use PocketIO::XHRPolling;
-use PocketIO::Htmlfile;
+use PocketIO::Transport::JSONPPolling;
+use PocketIO::Transport::WebSocket;
+use PocketIO::Transport::XHRMultipart;
+use PocketIO::Transport::XHRPolling;
+use PocketIO::Transport::Htmlfile;
 
 use constant DEBUG => $ENV{POCKETIO_RESOURCE_DEBUG};
 
@@ -47,7 +47,7 @@ sub _build_transport {
 
     return unless $class;
 
-    $class = "PocketIO::$class";
+    $class = "PocketIO::Transport::$class";
 
     return $class->new(@args);
 }

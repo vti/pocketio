@@ -1,9 +1,9 @@
-package PocketIO::XHRPolling;
+package PocketIO::Transport::XHRPolling;
 
 use strict;
 use warnings;
 
-use base 'PocketIO::Polling';
+use base 'PocketIO::Transport::BasePolling';
 
 sub name {'xhr-polling'}
 

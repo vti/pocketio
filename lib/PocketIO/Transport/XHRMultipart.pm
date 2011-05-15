@@ -1,9 +1,9 @@
-package PocketIO::XHRMultipart;
+package PocketIO::Transport::XHRMultipart;
 
 use strict;
 use warnings;
 
-use base 'PocketIO::Base';
+use base 'PocketIO::Transport::Base';
 
 use PocketIO::Handle;
 

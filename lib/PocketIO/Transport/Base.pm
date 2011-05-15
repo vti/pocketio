@@ -1,4 +1,4 @@
-package PocketIO::Base;
+package PocketIO::Transport::Base;
 
 use strict;
 use warnings;

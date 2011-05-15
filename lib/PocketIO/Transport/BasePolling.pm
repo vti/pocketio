@@ -1,9 +1,9 @@
-package PocketIO::Polling;
+package PocketIO::Transport::BasePolling;
 
 use strict;
 use warnings;
 
-use base 'PocketIO::Base';
+use base 'PocketIO::Transport::Base';
 
 sub _finalize_init {
     my $self = shift;

@@ -1,9 +1,9 @@
-package PocketIO::JSONPPolling;
+package PocketIO::Transport::JSONPPolling;
 
 use strict;
 use warnings;
 
-use base 'PocketIO::Polling';
+use base 'PocketIO::Transport::BasePolling';
 
 sub name {'jsonp-polling'}
 
