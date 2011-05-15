@@ -210,7 +210,7 @@ sub send_broadcast {
     my ($message) = @_;
 
     my @conn = grep { $_->is_connected && $_->id ne $self->id }
-      PocketIO::Pool->instance->connections;
+      PocketIO::Pool->connections;
 
     foreach my $conn (@conn) {
         $conn->send_message($message);

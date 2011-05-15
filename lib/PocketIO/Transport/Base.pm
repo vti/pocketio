@@ -29,7 +29,7 @@ sub env { shift->{req}->{env} }
 sub add_connection {
     my $self = shift;
 
-    return PocketIO::Pool->instance->add_connection(
+    return PocketIO::Pool->add_connection(
         type => $self->name,
         @_
     );
@@ -39,7 +39,7 @@ sub remove_connection {
     my $self = shift;
     my ($conn) = @_;
 
-    PocketIO::Pool->instance->remove_connection(
+    PocketIO::Pool->remove_connection(
         $conn->id);
 
     return $self;
@@ -48,7 +48,7 @@ sub remove_connection {
 sub find_connection {
     my $self = shift;
 
-    return PocketIO::Pool->instance->find_connection(@_);
+    return PocketIO::Pool->find_connection(@_);
 }
 
 sub client_connected {

@@ -9,29 +9,19 @@ use PocketIO::Connection;
 
 use constant DEBUG => $ENV{POCKETIO_POOL_DEBUG};
 
-sub instance {
-    my $class = shift;
-
-    no strict;
-
-    ${"$class\::_instance"} ||= $class->_new_instance(@_);
-
-    return ${"$class\::_instance"};
-}
-
 sub find_connection {
     my $self = shift;
     my ($conn) = @_;
 
     my $id = blessed $conn ? $conn->id : $conn;
 
-    return $self->{connections}->{$id};
+    return $self->_instance->{connections}->{$id};
 }
 
 sub connections {
     my $self = shift;
 
-    return values %{$self->{connections}};
+    return values %{$self->_instance->{connections}};
 }
 
 sub add_connection {
@@ -39,7 +29,7 @@ sub add_connection {
 
     my $conn = $self->_build_connection(@_);
 
-    $self->{connections}->{$conn->id} = $conn;
+    $self->_instance->{connections}->{$conn->id} = $conn;
 
     $conn->connecting;
 
@@ -54,9 +44,19 @@ sub remove_connection {
 
     my $id = blessed $conn ? $conn->id : $conn;
 
-    delete $self->{connections}->{$id};
+    delete $self->_instance->{connections}->{$id};
 
     DEBUG && warn "Removed connection '" . $id . "'\n";
+}
+
+sub _instance {
+    my $class = shift;
+
+    no strict;
+
+    ${"$class\::_instance"} ||= $class->_new_instance(@_);
+
+    return ${"$class\::_instance"};
 }
 
 sub _new_instance {
