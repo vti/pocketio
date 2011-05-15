@@ -26,7 +26,7 @@ sub call {
 
     my $instance = PocketIO::Resource->instance;
 
-    return $instance->finalize($env, $self->handler)
+    return $instance->dispatch($env, $self->handler)
       || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
 }
 

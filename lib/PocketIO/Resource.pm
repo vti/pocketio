@@ -3,12 +3,6 @@ package PocketIO::Resource;
 use strict;
 use warnings;
 
-use Scalar::Util qw(blessed);
-
-use Plack::Request;
-use PocketIO::Connection;
-use PocketIO::Handle;
-
 use PocketIO::JSONPPolling;
 use PocketIO::WebSocket;
 use PocketIO::XHRMultipart;
@@ -17,57 +11,7 @@ use PocketIO::Htmlfile;
 
 use constant DEBUG => $ENV{POCKETIO_RESOURCE_DEBUG};
 
-sub instance {
-    my $class = shift;
-
-    no strict;
-
-    ${"$class\::_instance"} ||= $class->_new_instance(@_);
-
-    return ${"$class\::_instance"};
-}
-
-sub find_connection {
-    my $self = shift;
-    my ($conn) = @_;
-
-    my $id = blessed $conn ? $conn->id : $conn;
-
-    return $self->{connections}->{$id};
-}
-
-sub connections {
-    my $self = shift;
-
-    return values %{$self->{connections}};
-}
-
-sub add_connection {
-    my $self = shift;
-
-    my $conn = $self->_build_connection(@_);
-
-    $self->{connections}->{$conn->id} = $conn;
-
-    $conn->connecting;
-
-    DEBUG && warn "Added connection '" . $conn->id . "'\n";
-
-    return $conn;
-}
-
-sub remove_connection {
-    my $self = shift;
-    my ($conn) = @_;
-
-    my $id = blessed $conn ? $conn->id : $conn;
-
-    delete $self->{connections}->{$id};
-
-    DEBUG && warn "Removed connection '" . $id . "'\n";
-}
-
-sub finalize {
+sub dispatch {
     my $self = shift;
     my ($env, $cb) = @_;
 
@@ -78,16 +22,6 @@ sub finalize {
     return unless $transport;
 
     return $transport->finalize($cb);
-}
-
-sub _new_instance {
-    my $class = shift;
-
-    my $self = bless {@_}, $class;
-
-    $self->{connections} = {};
-
-    return $self;
 }
 
 sub _build_transport {
@@ -118,13 +52,6 @@ sub _build_transport {
     return $class->new(@args);
 }
 
-sub _build_connection {
-    my $self = shift;
-
-    return PocketIO::Connection->new(@_,
-        on_connection_failed => sub { $self->remove_connection($_[0]->id) });
-}
-
 1;
 __END__
 
@@ -134,18 +61,10 @@ PocketIO::Resource - Resource class
 
 =head1 DESCRIPTION
 
-L<PocketIO::Resource> is a singleton connection pool.
+L<PocketIO::Resource> is a transport dispatcher.
 
 =head1 METHODS
 
-=head2 C<instance>
-
-=head2 C<find_connection>
-
-=head2 C<add_connection>
-
-=head2 C<remove_connection>
-
-=head2 C<finalize>
+=head2 C<dispatch>
 
 =cut

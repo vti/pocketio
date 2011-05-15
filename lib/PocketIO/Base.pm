@@ -10,7 +10,7 @@ use Scalar::Util qw(weaken);
 
 use Plack::Request;
 use PocketIO::Handle;
-use PocketIO::Resource;
+use PocketIO::Pool;
 
 sub new {
     my $class = shift;
@@ -29,7 +29,7 @@ sub env { shift->{req}->{env} }
 sub add_connection {
     my $self = shift;
 
-    return PocketIO::Resource->instance->add_connection(
+    return PocketIO::Pool->instance->add_connection(
         type => $self->name,
         @_
     );
@@ -39,7 +39,7 @@ sub remove_connection {
     my $self = shift;
     my ($conn) = @_;
 
-    PocketIO::Resource->instance->remove_connection(
+    PocketIO::Pool->instance->remove_connection(
         $conn->id);
 
     return $self;
@@ -48,7 +48,7 @@ sub remove_connection {
 sub find_connection {
     my $self = shift;
 
-    return PocketIO::Resource->instance->find_connection(@_);
+    return PocketIO::Pool->instance->find_connection(@_);
 }
 
 sub client_connected {
