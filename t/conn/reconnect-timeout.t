@@ -12,15 +12,19 @@ my $cv = AnyEvent->condvar;
 
 my $failed = 0;
 my $conn   = PocketIO::Connection->new(
-    connect_timeout      => 0.1,
-    on_connect_failed => sub {
+    reconnect_timeout   => 0.1,
+    on_reconnect_failed => sub {
+        shift->disconnected;
+    },
+    on_disconnect => sub {
         $failed = 1;
 
         $cv->send;
     }
 );
 
-$conn->connecting;
+$conn->connected;
+$conn->reconnecting;
 
 sleep 0.11;
 
@@ -32,19 +36,15 @@ $cv = AnyEvent->condvar;
 
 $failed = 0;
 $conn   = PocketIO::Connection->new(
-    connect_timeout => 1,
-    on_connect      => sub {
-        $cv->send;
-    },
-    on_connect_failed => sub {
-        $failed = 1;
-
+    reconnect_timeout => 1,
+    on_reconnect      => sub {
         $cv->send;
     }
 );
 
-$conn->connecting;
 $conn->connected;
+$conn->reconnecting;
+$conn->reconnected;
 
 $cv->recv;
 

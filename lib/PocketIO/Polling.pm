@@ -9,7 +9,13 @@ sub _finalize_init {
     my $self = shift;
     my ($cb) = @_;
 
-    my $conn = $self->add_connection(on_connect => $cb);
+    my $conn;
+    $conn = $self->add_connection(
+        on_connect         => $cb,
+        on_reconnect_failed => sub {
+            $self->client_disconnected($conn);
+        }
+    );
 
     my $body = $self->_format_message($conn->build_id_message);
 
@@ -55,7 +61,7 @@ sub _finalize_stream {
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
         if ($conn->has_staged_messages) {
-            $self->_write($handle, $conn->staged_message);
+            $self->_write($conn, $handle, $conn->staged_message);
         }
         else {
             $conn->on_write(
@@ -64,12 +70,17 @@ sub _finalize_stream {
                     my ($message) = @_;
 
                     $conn->on_write(undef);
-                    $self->_write($handle, $message);
+                    $self->_write($conn, $handle, $message);
                 }
             );
         }
 
-        $self->client_connected($conn);
+        if ($conn->is_connected) {
+            $conn->reconnected;
+        }
+        else {
+            $self->client_connected($conn);
+        }
     };
 }
 
@@ -97,7 +108,7 @@ sub _finalize_send {
 
 sub _write {
     my $self = shift;
-    my ($handle, $message) = @_;
+    my ($conn, $handle, $message) = @_;
 
     $message = $self->_format_message($message);
 
@@ -109,6 +120,7 @@ sub _write {
         ),
         sub {
             $handle->close;
+            $conn->reconnecting;
         }
     );
 }

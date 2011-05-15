@@ -8,22 +8,27 @@ use JSON ();
 use Encode ();
 use Try::Tiny;
 
+use constant DEBUG => $ENV{POCKETIO_CONNECTION_DEBUG};
+
 sub new {
     my $class = shift;
 
     my $self = {@_};
     bless $self, $class;
 
-    $self->{connect_timeout} ||= 15;
+    $self->{connect_timeout}   ||= 15;
+    $self->{reconnect_timeout} ||= 15;
 
     $self->{max_messages_to_stage} ||= 32;
     $self->{messages} = [];
 
-    $self->{on_connection_failed} ||= sub { };
-    $self->{on_connect}           ||= sub { };
-    $self->{on_message}           ||= sub { };
-    $self->{on_disconnect}        ||= sub { };
-    $self->{on_error}             ||= sub { };
+    $self->{on_connect_failed}   ||= sub { };
+    $self->{on_connect}          ||= sub { };
+    $self->{on_reconnect}        ||= sub { };
+    $self->{on_reconnect_failed} ||= sub { };
+    $self->{on_message}          ||= sub { };
+    $self->{on_disconnect}       ||= sub { };
+    $self->{on_error}            ||= sub { };
 
     $self->{data} = '';
 
@@ -41,12 +46,29 @@ sub is_connected {
 sub connecting {
     my $self = shift;
 
+    DEBUG && warn "State 'connecting'\n";
+
     $self->{connect_timer} = AnyEvent->timer(
         after => $self->{connect_timeout},
         cb    => sub {
-            if (!$self->is_connected) {
-                $self->{on_connection_failed}->($self);
-            }
+            DEBUG && warn "Timeout 'connect_timeout'";
+
+            $self->on('connect_failed')->($self);
+        }
+    );
+}
+
+sub reconnecting {
+    my $self = shift;
+
+    DEBUG && warn "State 'reconnecting'\n";
+
+    $self->{reconnect_timer} = AnyEvent->timer(
+        after => $self->{reconnect_timeout},
+        cb    => sub {
+            DEBUG && warn "Timeout 'reconnect_timeout'\n";
+
+            $self->on('reconnect_failed')->($self);
         }
     );
 }
@@ -54,11 +76,25 @@ sub connecting {
 sub connected {
     my $self = shift;
 
+    DEBUG && warn "State 'connected'\n";
+
     delete $self->{connect_timer};
 
     $self->{is_connected} = 1;
 
-    $self->{on_connect}->($self);
+    $self->on('connect')->($self);
+
+    return $self;
+}
+
+sub reconnected {
+    my $self = shift;
+
+    DEBUG && warn "State 'reconnected'\n";
+
+    delete $self->{reconnect_timeout};
+
+    $self->on('reconnect')->($self);
 
     return $self;
 }
@@ -66,9 +102,11 @@ sub connected {
 sub disconnected {
     my $self = shift;
 
+    DEBUG && warn "State 'disconnected'\n";
+
     $self->{is_connected} = 0;
 
-    $self->{on_disconnect}->($self);
+    $self->on('disconnect')->($self);
 
     return $self;
 }
@@ -92,7 +130,11 @@ sub on {
 
     my $name = "on_$event";
 
-    return $self->{$name} unless @_;
+    unless (@_) {
+        DEBUG && warn "Event 'on_$event'\n";
+
+        return $self->{$name};
+    }
 
     $self->{$name} = $_[0];
 
@@ -108,7 +150,7 @@ sub read {
     $self->{data} .= Encode::decode('UTF-8', $data);
 
     while (my $message = $self->_parse_data) {
-        $self->on_message->($self, $message);
+        $self->on('message')->($self, $message);
     }
 
     return $self;
@@ -129,7 +171,7 @@ sub send_message {
     $message = $self->build_message($message);
 
     if ($self->on_write) {
-        $self->on_write->($self, $message);
+        $self->on('write')->($self, $message);
     }
     else {
         $self->stage_message($message);
@@ -180,7 +222,7 @@ sub send_id_message {
 
     my $message = $self->build_id_message;
 
-    $self->on_write->($self, $message);
+    $self->on('write')->($self, $message);
 
     return $self;
 }

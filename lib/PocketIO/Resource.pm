@@ -15,6 +15,8 @@ use PocketIO::XHRMultipart;
 use PocketIO::XHRPolling;
 use PocketIO::Htmlfile;
 
+use constant DEBUG => $ENV{POCKETIO_RESOURCE_DEBUG};
+
 sub instance {
     my $class = shift;
 
@@ -49,14 +51,20 @@ sub add_connection {
 
     $conn->connecting;
 
+    DEBUG && warn "Added connection '" . $conn->id . "'\n";
+
     return $conn;
 }
 
 sub remove_connection {
     my $self = shift;
-    my ($id) = @_;
+    my ($conn) = @_;
+
+    my $id = blessed $conn ? $conn->id : $conn;
 
     delete $self->{connections}->{$id};
+
+    DEBUG && warn "Removed connection '" . $id . "'\n";
 }
 
 sub finalize {
