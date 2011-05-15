@@ -3,6 +3,8 @@ package PocketIO::Resource;
 use strict;
 use warnings;
 
+use Scalar::Util qw(blessed);
+
 use Plack::Request;
 use PocketIO::Connection;
 use PocketIO::Handle;
@@ -23,9 +25,11 @@ sub instance {
     return ${"$class\::_instance"};
 }
 
-sub connection {
+sub find_connection {
     my $self = shift;
-    my ($id) = @_;
+    my ($conn) = @_;
+
+    my $id = blessed $conn ? $conn->id : $conn;
 
     return $self->{connections}->{$id};
 }
@@ -128,7 +132,7 @@ L<PocketIO::Resource> is a singleton connection pool.
 
 =head2 C<instance>
 
-=head2 C<connection>
+=head2 C<find_connection>
 
 =head2 C<add_connection>
 

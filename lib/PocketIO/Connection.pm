@@ -30,6 +30,8 @@ sub new {
     return $self;
 }
 
+sub type { shift->{type} }
+
 sub is_connected {
     my $self = shift;
 

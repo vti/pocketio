@@ -45,11 +45,10 @@ sub remove_connection {
     return $self;
 }
 
-sub find_connection_by_id {
+sub find_connection {
     my $self = shift;
-    my ($id) = @_;
 
-    return PocketIO::Resource->instance->connection($id);
+    return PocketIO::Resource->instance->find_connection(@_);
 }
 
 sub client_connected {
@@ -140,7 +139,7 @@ L<PocketIO::Base> is a base class for the transports.
 
 =head2 C<remove_connection>
 
-=head2 C<find_connection_by_id>
+=head2 C<find_connection>
 
 =head2 C<client_connected>
 

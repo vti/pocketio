@@ -93,7 +93,7 @@ sub _finalize_send {
     my $self = shift;
     my ($req, $id) = @_;
 
-    my $conn = $self->find_connection_by_id($id);
+    my $conn = $self->find_connection($id);
     return unless $conn;
 
     my $retval = [
