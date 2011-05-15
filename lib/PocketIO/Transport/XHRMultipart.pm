@@ -43,9 +43,13 @@ sub _dispatch_stream {
     return sub {
         my $respond = shift;
 
-        my $boundary = $self->{boundary};
-
         my $conn = $self->add_connection(on_connect => $cb);
+
+        my $close_cb = sub { $handle->close; $self->client_disconnected($conn); };
+        $handle->on_eof($close_cb);
+        $handle->on_error($close_cb);
+
+        my $boundary = $self->{boundary};
 
         $conn->on_write(
             sub {
@@ -67,24 +71,6 @@ sub _dispatch_stream {
         );
 
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
-
-        $handle->on_eof(
-            sub {
-                my $handle = shift;
-
-                $handle->close;
-
-                $self->client_disconnected($conn);
-            }
-        );
-
-        $handle->on_error(
-            sub {
-                $self->client_disconnected($conn);
-
-                $handle->close;
-            }
-        );
 
         $handle->write(
             join "\x0d\x0a" => 'HTTP/1.1 200 OK',

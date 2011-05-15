@@ -37,21 +37,9 @@ sub _dispatch_stream {
     return sub {
         my $conn = $self->add_connection(on_connect => $cb);
 
-        $handle->on_eof(
-            sub {
-                $self->client_disconnected($conn);
-
-                $handle->close;
-            }
-        );
-
-        $handle->on_error(
-            sub {
-                $self->client_disconnected($conn);
-
-                $handle->close;
-            }
-        );
+        my $close_cb = sub { $handle->close; $self->client_disconnected($conn); };
+        $handle->on_eof($close_cb);
+        $handle->on_error($close_cb);
 
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
 

@@ -36,6 +36,10 @@ sub dispatch {
 
                 my $conn = $self->add_connection(on_connect => $cb);
 
+                my $close_cb = sub { $handle->close; $self->client_disconnected($conn); };
+                $handle->on_eof($close_cb);
+                $handle->on_error($close_cb);
+
                 $handle->on_heartbeat(sub { $conn->send_heartbeat });
 
                 $handle->on_read(
@@ -47,22 +51,6 @@ sub dispatch {
                         while (my $message = $frame->next_bytes) {
                             $conn->read($message);
                         }
-                    }
-                );
-
-                $handle->on_eof(
-                    sub {
-                        $handle->close;
-
-                        $self->client_disconnected($conn);
-                    }
-                );
-
-                $handle->on_error(
-                    sub {
-                        $self->client_disconnected($conn);
-
-                        $handle->close;
                     }
                 );
 
