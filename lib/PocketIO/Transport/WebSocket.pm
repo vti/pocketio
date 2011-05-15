@@ -14,7 +14,7 @@ use PocketIO::Handle;
 
 sub name {'websocket'}
 
-sub finalize {
+sub dispatch {
     my $self = shift;
     my ($cb) = @_;
 

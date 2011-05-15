@@ -21,7 +21,7 @@ sub dispatch {
     my $transport = $self->_build_transport($type, env => $env);
     return unless $transport;
 
-    return $transport->finalize($cb);
+    return $transport->dispatch($cb);
 }
 
 sub _build_transport {

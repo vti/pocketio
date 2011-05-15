@@ -9,7 +9,7 @@ use HTTP::Body;
 
 sub name {'htmlfile'}
 
-sub finalize {
+sub dispatch {
     my $self = shift;
     my ($cb) = @_;
 
@@ -17,17 +17,17 @@ sub finalize {
     my $name = $self->name;
 
     if ($req->method eq 'GET') {
-        return $self->_finalize_stream($cb) if $req->path =~ m{^/$name//\d+$};
+        return $self->_dispatch_stream($cb) if $req->path =~ m{^/$name//\d+$};
     }
 
     return
       unless $req->method eq 'POST'
           && $req->path_info =~ m{^/$name/(\d+)/send$};
 
-    return $self->_finalize_send($req, $1);
+    return $self->_dispatch_send($req, $1);
 }
 
-sub _finalize_stream {
+sub _dispatch_stream {
     my $self = shift;
     my ($cb) = @_;
 
@@ -88,7 +88,7 @@ sub _finalize_stream {
     };
 }
 
-sub _finalize_send {
+sub _dispatch_send {
     my $self = shift;
     my ($req, $id) = @_;
 

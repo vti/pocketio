@@ -17,22 +17,22 @@ sub new {
 
 sub name {'xhr-multipart'}
 
-sub finalize {
+sub dispatch {
     my $self = shift;
     my ($cb) = @_;
 
     my $req  = $self->req;
     my $name = $self->name;
 
-    return $self->_finalize_stream($req, $cb) if $req->method eq 'GET';
+    return $self->_dispatch_stream($req, $cb) if $req->method eq 'GET';
 
     return
       unless $req->method eq 'POST' && $req->path =~ m{^/$name/(\d+)/send$};
 
-    return $self->_finalize_send($req, $1);
+    return $self->_dispatch_send($req, $1);
 }
 
-sub _finalize_stream {
+sub _dispatch_stream {
     my $self = shift;
     my ($req, $cb) = @_;
 
@@ -97,7 +97,7 @@ sub _finalize_stream {
     };
 }
 
-sub _finalize_send {
+sub _dispatch_send {
     my $self = shift;
     my ($req, $id) = @_;
 
@@ -135,6 +135,6 @@ implementation.
 
 =head2 C<name>
 
-=head2 C<finalize>
+=head2 C<dispatch>
 
 =cut

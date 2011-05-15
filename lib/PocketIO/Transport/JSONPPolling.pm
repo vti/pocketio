@@ -7,7 +7,7 @@ use base 'PocketIO::Transport::BasePolling';
 
 sub name {'jsonp-polling'}
 
-sub finalize {
+sub dispatch {
     my $self = shift;
     my ($cb) = @_;
 
@@ -15,10 +15,10 @@ sub finalize {
     my $name = $self->name;
 
     if ($req->method eq 'GET') {
-        return $self->_finalize_init($cb)
+        return $self->_dispatch_init($cb)
           if $req->path =~ m{^/$name//\d+/\d+$};
 
-        return $self->_finalize_stream($1)
+        return $self->_dispatch_stream($1)
           if $req->path =~ m{^/$name/(\d+)/\d+/\d+$};
     }
 
@@ -26,7 +26,7 @@ sub finalize {
       unless $req->method eq 'POST'
           && $req->path =~ m{^/$name/(\d+)/\d+/\d+$};
 
-    return $self->_finalize_send($req, $1);
+    return $self->_dispatch_send($req, $1);
 }
 
 sub _format_message {
@@ -53,6 +53,6 @@ implementation.
 
 =head2 C<name>
 
-=head2 C<finalize>
+=head2 C<dispatch>
 
 =cut

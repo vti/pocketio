@@ -5,7 +5,7 @@ use warnings;
 
 use base 'PocketIO::Transport::Base';
 
-sub _finalize_init {
+sub _dispatch_init {
     my $self = shift;
     my ($cb) = @_;
 
@@ -29,7 +29,7 @@ sub _finalize_init {
     ];
 }
 
-sub _finalize_stream {
+sub _dispatch_stream {
     my $self = shift;
     my ($id) = @_;
 
@@ -83,7 +83,7 @@ sub _finalize_stream {
     };
 }
 
-sub _finalize_send {
+sub _dispatch_send {
     my $self = shift;
     my ($req, $id) = @_;
 
