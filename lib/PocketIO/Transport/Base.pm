@@ -61,11 +61,11 @@ sub client_disconnected {
     my $self = shift;
     my ($conn) = @_;
 
+    $self->remove_connection($conn);
+
     $conn->disconnected;
 
     $self->_log_client_disconnected($conn);
-
-    $self->remove_connection($conn);
 }
 
 sub _log_client_connected {

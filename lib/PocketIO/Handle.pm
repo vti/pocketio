@@ -86,7 +86,7 @@ sub write {
     my ($chunk, $cb) = @_;
 
     my $handle = $self->{handle};
-    return $self unless $handle;
+    return $self unless $handle && $handle->fh;
 
     $handle->push_write($chunk);
 
@@ -113,6 +113,11 @@ sub close {
 
     shutdown $handle->fh, 2;
     close $handle->fh;
+
+    $handle->{wbuf} = '';
+
+    $handle->on_eof(sub   { });
+    $handle->on_error(sub { });
 
     $handle->destroy;
     undef $handle;

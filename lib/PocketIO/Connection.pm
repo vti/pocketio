@@ -209,10 +209,10 @@ sub send_broadcast {
     my $self = shift;
     my ($message) = @_;
 
-    my @conn = grep { $_->is_connected && $_->id ne $self->id }
-      PocketIO::Pool->connections;
+    foreach my $conn (PocketIO::Pool->connections) {
+        next if $conn->id eq $self->id;
+        next unless $conn->is_connected;
 
-    foreach my $conn (@conn) {
         $conn->send_message($message);
     }
 

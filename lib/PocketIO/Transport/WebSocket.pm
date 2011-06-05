@@ -5,6 +5,7 @@ use warnings;
 
 use base 'PocketIO::Transport::Base';
 
+use Scalar::Util qw(weaken);
 use Protocol::WebSocket::Frame;
 use Protocol::WebSocket::Handshake::Server;
 
@@ -33,6 +34,8 @@ sub dispatch {
         $handle->write(
             $hs->to_string => sub {
                 my $handle = shift;
+
+                weaken $handle;
 
                 my $conn = $self->add_connection(on_connect => $cb);
 
