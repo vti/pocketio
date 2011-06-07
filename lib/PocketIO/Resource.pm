@@ -3,13 +3,22 @@ package PocketIO::Resource;
 use strict;
 use warnings;
 
+use PocketIO::Transport::Htmlfile;
 use PocketIO::Transport::JSONPPolling;
 use PocketIO::Transport::WebSocket;
 use PocketIO::Transport::XHRMultipart;
 use PocketIO::Transport::XHRPolling;
-use PocketIO::Transport::Htmlfile;
 
 use constant DEBUG => $ENV{POCKETIO_RESOURCE_DEBUG};
+
+my %TRANSPORTS = (
+    'xhr-multipart' => 'XHRMultipart',
+    'xhr-polling'   => 'XHRPolling',
+    'jsonp-polling' => 'JSONPPolling',
+    'flashsocket'   => 'WebSocket',
+    'websocket'     => 'WebSocket',
+    'htmlfile'      => 'Htmlfile'
+);
 
 sub dispatch {
     my $self = shift;
@@ -28,26 +37,11 @@ sub _build_transport {
     my $self = shift;
     my ($type, @args) = @_;
 
-    my $class;
-    if ($type eq 'xhr-multipart') {
-        $class = 'XHRMultipart';
-    }
-    elsif ($type eq 'xhr-polling') {
-        $class = 'XHRPolling';
-    }
-    elsif ($type eq 'jsonp-polling') {
-        $class = 'JSONPPolling';
-    }
-    elsif ($type =~ m/^(?:flash|web)socket$/) {
-        $class = 'WebSocket';
-    }
-    elsif ($type =~ m/^htmlfile$/) {
-        $class = 'Htmlfile';
-    }
+    return unless exists $TRANSPORTS{$type};
 
-    return unless $class;
+    my $class = "PocketIO::Transport::$TRANSPORTS{$type}";
 
-    $class = "PocketIO::Transport::$class";
+    DEBUG && warn "Building $class\n";
 
     return $class->new(@args);
 }
