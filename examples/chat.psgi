@@ -35,6 +35,8 @@ builder {
 
             $self->on_disconnect(
                 sub {
+                    my $self = shift;
+
                     $self->send_broadcast(
                         {announcement => $self->id . ' disconnected'});
                 }

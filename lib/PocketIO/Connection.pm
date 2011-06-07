@@ -34,16 +34,14 @@ sub new {
 
     $self->{data} = '';
 
+    DEBUG && warn "Connection created\n";
+
     return $self;
 }
 
 sub type { shift->{type} }
 
-sub is_connected {
-    my $self = shift;
-
-    return $self->{is_connected};
-}
+sub is_connected { $_[0]->{is_connected} }
 
 sub connecting {
     my $self = shift;
@@ -105,6 +103,9 @@ sub disconnected {
     my $self = shift;
 
     DEBUG && warn "State 'disconnected'\n";
+
+    $self->{data}     = '';
+    $self->{messages} = [];
 
     $self->{is_connected} = 0;
 
@@ -293,6 +294,10 @@ sub _parse_data {
 
     $self->{data} = '';
     return;
+}
+
+sub DESTROY {
+    DEBUG && warn "Connection destroyed\n";
 }
 
 1;

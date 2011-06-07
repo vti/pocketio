@@ -35,11 +35,12 @@ sub dispatch {
             $hs->to_string => sub {
                 my $handle = shift;
 
-                weaken $handle;
-
                 my $conn = $self->add_connection(on_connect => $cb);
 
-                my $close_cb = sub { $handle->close; $self->client_disconnected($conn); };
+                my $close_cb = sub {
+                    $handle->close;
+                    $self->client_disconnected($conn);
+                };
                 $handle->on_eof($close_cb);
                 $handle->on_error($close_cb);
 
@@ -47,9 +48,7 @@ sub dispatch {
 
                 $handle->on_read(
                     sub {
-                        my $handle = shift;
-
-                        $frame->append($_[0]);
+                        $frame->append($_[1]);
 
                         while (my $message = $frame->next_bytes) {
                             $conn->read($message);
@@ -59,10 +58,7 @@ sub dispatch {
 
                 $conn->on_write(
                     sub {
-                        my $conn = shift;
-                        my ($bytes) = @_;
-
-                        $bytes = $self->_build_frame($bytes);
+                        my $bytes = $self->_build_frame($_[1]);
 
                         $handle->write($bytes);
                     }

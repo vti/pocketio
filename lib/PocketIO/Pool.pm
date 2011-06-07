@@ -40,9 +40,8 @@ sub add_connection {
 
 sub remove_connection {
     my $self = shift;
-    my ($conn) = @_;
 
-    my $id = blessed $conn ? $conn->id : $conn;
+    my $id = blessed $_[0] ? $_[0]->id : $_[0];
 
     delete $self->_instance->{connections}->{$id};
 

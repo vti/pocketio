@@ -35,7 +35,7 @@ sub add_connection {
 sub remove_connection {
     my $self = shift;
 
-    PocketIO::Pool->remove_connection(@_);
+    PocketIO::Pool->remove_connection($_[0]);
 
     return $self;
 }
@@ -61,11 +61,13 @@ sub client_disconnected {
     my $self = shift;
     my ($conn) = @_;
 
-    $self->remove_connection($conn);
-
     $conn->disconnected;
 
     $self->_log_client_disconnected($conn);
+
+    $self->remove_connection($conn);
+
+    return $self;
 }
 
 sub _log_client_connected {

@@ -5,6 +5,8 @@ use warnings;
 
 use AnyEvent::Handle;
 
+use constant DEBUG => $ENV{POCKETIO_HANDLE_DEBUG};
+
 sub new {
     my $class = shift;
     my ($fh) = @_;
@@ -109,20 +111,24 @@ sub close {
     my $handle = delete $self->{handle};
     return $self unless $handle;
 
-    $handle->timeout_reset;
+    $handle->timeout(0);
 
-    shutdown $handle->fh, 2;
-    close $handle->fh;
+    $handle->on_drain;
+    $handle->on_error;
 
-    $handle->{wbuf} = '';
+    $handle->on_drain(sub {
+        shutdown $_[0]->fh, 1;
+        close $handle->fh;
 
-    $handle->on_eof(sub   { });
-    $handle->on_error(sub { });
-
-    $handle->destroy;
-    undef $handle;
+        $_[0]->destroy;
+        undef $handle;
+    });
 
     return $self;
+}
+
+sub DESTROY {
+    DEBUG && warn "Handle destroyed\n";
 }
 
 1;
