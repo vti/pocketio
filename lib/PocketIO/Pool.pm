@@ -72,7 +72,7 @@ sub _build_connection {
     my $self = shift;
 
     return PocketIO::Connection->new(@_,
-        on_connection_failed => sub { $self->remove_connection(@_) });
+        on_connect_failed => sub { $self->remove_connection(@_) });
 }
 
 

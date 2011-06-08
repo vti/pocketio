@@ -5,7 +5,6 @@ use warnings;
 
 use base 'PocketIO::Transport::Base';
 
-use Scalar::Util qw(weaken);
 use Protocol::WebSocket::Frame;
 use Protocol::WebSocket::Handshake::Server;
 
@@ -64,9 +63,9 @@ sub dispatch {
                     }
                 );
 
-                $conn->send_id_message($conn->id);
-
                 $self->client_connected($conn);
+
+                $conn->send_id_message($conn->id);
             }
         );
     };

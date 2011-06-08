@@ -95,7 +95,9 @@ sub write {
     if ($cb) {
         $handle->on_drain(
             sub {
-                $self->{handle}->on_drain(undef);
+                my $handle = shift;
+
+                $handle->on_drain(undef);
 
                 $cb->($self);
             }

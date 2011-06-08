@@ -104,6 +104,9 @@ sub disconnected {
 
     DEBUG && warn "State 'disconnected'\n";
 
+    delete $self->{connect_timer};
+    delete $self->{reconnect_timer};
+
     $self->{data}     = '';
     $self->{messages} = [];
 
