@@ -129,10 +129,6 @@ sub close {
     return $self;
 }
 
-sub DESTROY {
-    DEBUG && warn "Handle destroyed\n";
-}
-
 1;
 __END__
 

@@ -112,7 +112,12 @@ sub disconnected {
 
     $self->{is_connected} = 0;
 
-    $self->on('disconnect')->($self);
+    $self->{disconnect_timer} = AnyEvent->timer(
+        after => 0,
+        cb    => sub {
+            $self->on('disconnect')->($self);
+        }
+    );
 
     return $self;
 }
@@ -297,10 +302,6 @@ sub _parse_data {
 
     $self->{data} = '';
     return;
-}
-
-sub DESTROY {
-    DEBUG && warn "Connection destroyed\n";
 }
 
 1;
