@@ -1,6 +1,8 @@
 
 =pod
 
+=encoding utf8
+
 =head1 PocketIO
 
 L<PocketIO> is a server implementation of SocketIO in Perl.
@@ -28,7 +30,9 @@ you need to make the following simple steps:
 
 =item 1. Clone somewhere L<https://github.com/LearnBoost/Socket.IO-node>.
 
-=item 2. Save the shown .psgi file, changing <$path_to_socket_io> so it points to the Socket.IO-node files.
+=item 2. Switch to the C<06> branch: C<cd Socket.IO-node ; git checkout 06>
+
+=item 3. Save the shown F<.psgi> file, changing I<$path_to_socket_io> so it points to the Socket.IO-node files:
 
     use Plack::App::File;
     use Plack::Builder;
@@ -41,6 +45,9 @@ you need to make the following simple steps:
     builder {
         mount '/socket.io/socket.io.js' => Plack::App::File->new(
             file => "$path_to_socket_io/support/socket.io-client/socket.io.js");
+
+        mount '/socket.io/lib' => Plack::App::File->new(
+            root => "$path_to_socket_io/support/socket.io-client/lib");
 
         mount '/socket.io' => PocketIO->new(
             handler => sub {
@@ -86,7 +93,7 @@ you need to make the following simple steps:
         };
     };
 
-=item 3. Start L<Twiggy> or L<Fliggy> (same as L<Twiggy> but with inlined Flash Policy server)
+=item 4. Start L<Twiggy> or L<Fliggy> (same as L<Twiggy> but with inlined Flash Policy server)
 
     $ sudo flash-policy-server &
     $ twiggy chat.psgi --listen :8080
@@ -95,7 +102,7 @@ you need to make the following simple steps:
 
     $ fliggy chat.psgi --listen :8080
 
-=item 4. Point your browser to
+=item 5. Point your browser to
 
     http://localhost:8080
 
