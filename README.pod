@@ -23,88 +23,19 @@ on GitHub L<https://github.com/LearnBoost/Socket.IO>.
 
 =head1 EXAMPLE
 
-Below is an example similar to Socket.IO-node example chat. To run this example,
-you need to make the following simple steps:
+In C<examples/chat> you can find a chat example based on original Socket.IO-node
+chat.
 
-=over 4
+Just run C<twiggy> or C<fliggy> and you are ready to go:
 
-=item 1. Clone somewhere L<https://github.com/LearnBoost/Socket.IO-node>.
+    twiggy chat.psgi
+    sudo flash-policy-server
 
-=item 2. Switch to the C<06> branch: C<cd Socket.IO-node ; git checkout 06>
+    # or for embedded flash-policy-server
 
-=item 3. Save the shown F<.psgi> file, changing I<$path_to_socket_io> so it points to the Socket.IO-node files:
+    fliggy chat.psgi
 
-    use Plack::App::File;
-    use Plack::Builder;
-    use Plack::Middleware::Static;
-
-    use PocketIO;
-
-    my $path_to_socket_io = "/path/to/Socket.IO-node";
-
-    builder {
-        mount '/socket.io/socket.io.js' => Plack::App::File->new(
-            file => "$path_to_socket_io/support/socket.io-client/socket.io.js");
-
-        mount '/socket.io/lib' => Plack::App::File->new(
-            root => "$path_to_socket_io/support/socket.io-client/lib");
-
-        mount '/socket.io' => PocketIO->new(
-            handler => sub {
-                my $self = shift;
-
-                $self->on_message(
-                    sub {
-                        my $self = shift;
-                        my ($message) = @_;
-
-                        $self->send_broadcast(
-                            {message => [$self->id, $message]});
-                    }
-                );
-
-                $self->on_disconnect(
-                    sub {
-                        $self->send_broadcast(
-                            {announcement => $self->id . ' disconnected'});
-                    }
-                );
-
-                $self->send_message({buffer => []});
-
-                $self->send_broadcast(
-                    {announcement => $self->id . ' connected'});
-            }
-        );
-
-        mount '/' => builder {
-            enable "Static",
-              path => qr/\.(?:js|css|jpe?g|gif|png|swf|ico)$/,
-              root => "$path_to_socket_io/example";
-
-            enable "SimpleLogger", level => 'debug';
-
-            sub {
-                [   200,
-                    ['Content-Type' => 'text/html'],
-                    ['Open <a href="/chat.html">chat</a>.']
-                ];
-            };
-        };
-    };
-
-=item 4. Start L<Twiggy> or L<Fliggy> (same as L<Twiggy> but with inlined Flash Policy server)
-
-    $ sudo flash-policy-server &
-    $ twiggy chat.psgi --listen :8080
-
-    or
-
-    $ fliggy chat.psgi --listen :8080
-
-=item 5. Point your browser to
-
-    http://localhost:8080
+And point your browser to C<http://localhost:3000/>.
 
 =back
 
