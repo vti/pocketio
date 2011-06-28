@@ -20,8 +20,6 @@ my $conn   = PocketIO::Connection->new(
     }
 );
 
-$conn->connecting;
-
 sleep 0.11;
 
 $cv->recv;
@@ -43,7 +41,6 @@ $conn   = PocketIO::Connection->new(
     }
 );
 
-$conn->connecting;
 $conn->connected;
 
 $cv->recv;

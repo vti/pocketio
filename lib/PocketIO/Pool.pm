@@ -31,8 +31,6 @@ sub add_connection {
 
     $self->_instance->{connections}->{$conn->id} = $conn;
 
-    $conn->connecting;
-
     DEBUG && warn "Added connection '" . $conn->id . "'\n";
 
     return $conn;
@@ -46,6 +44,13 @@ sub remove_connection {
     delete $self->_instance->{connections}->{$id};
 
     DEBUG && warn "Removed connection '" . $id . "'\n";
+}
+
+sub reset {
+    my $class = shift;
+
+    no strict;
+    ${"$class\::_instance"} = undef;
 }
 
 sub _instance {
@@ -71,8 +76,17 @@ sub _new_instance {
 sub _build_connection {
     my $self = shift;
 
-    return PocketIO::Connection->new(@_,
-        on_connect_failed => sub { $self->remove_connection(@_) });
+    return PocketIO::Connection->new(
+        @_,
+        on_connect_failed   => sub { $self->remove_connection(@_) },
+        on_reconnect_failed => sub {
+            my $conn = shift;
+
+            $conn->disconnected;
+
+            $self->remove_connection($conn);
+        }
+    );
 }
 
 

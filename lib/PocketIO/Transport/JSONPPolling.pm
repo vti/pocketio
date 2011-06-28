@@ -7,34 +7,16 @@ use base 'PocketIO::Transport::BasePolling';
 
 sub name {'jsonp-polling'}
 
-sub dispatch {
-    my $self = shift;
-    my ($cb) = @_;
+sub _get_content { $_[0]->req->body_parameters->get('d') }
 
-    my $req  = $self->req;
-    my $name = $self->name;
-
-    if ($req->method eq 'GET') {
-        return $self->_dispatch_init($cb)
-          if $req->path =~ m{^/$name//\d+/\d+$};
-
-        return $self->_dispatch_stream($1)
-          if $req->path =~ m{^/$name/(\d+)/\d+/\d+$};
-    }
-
-    return
-      unless $req->method eq 'POST'
-          && $req->path =~ m{^/$name/(\d+)/\d+/\d+$};
-
-    return $self->_dispatch_send($req, $1);
-}
+sub _content_type {'text/javascript; charset=UTF-8'}
 
 sub _format_message {
     my $self = shift;
     my ($message) = @_;
 
     $message =~ s/"/\\"/g;
-    return qq{io.JSONP[0]._("$message");};
+    return qq{io.j[0]("$message");};
 }
 
 1;

@@ -3,7 +3,7 @@ use warnings;
 use utf8;
 use Encode;
 
-use Test::More tests => 13;
+use Test::More tests => 10;
 
 use_ok('PocketIO::Connection');
 
@@ -11,39 +11,24 @@ my $conn = PocketIO::Connection->new;
 ok $conn;
 
 my $output = '';
-$conn->on_message(sub { $output .= $_[1] });
+$conn->on('message' => sub { $output = $_[1] });
 
-$conn->read('~m~4~m~1234');
+$conn->parse_message('3:1::1234');
 is $output => '1234';
-$output = '';
 
-$conn->read('~m~6~m~' . encode_utf8('привет'));
+$conn->parse_message('3:1::' . encode_utf8('привет'));
 is $output => 'привет';
-$output = '';
 
-$conn->read('~m~4~m~1234~m~2~m~12');
-is $output => '123412';
-$output = '';
-
-$conn->read('foobar');
-is $output => '';
-
-$conn->on_message(sub { $output = $_[1] });
-
-$conn->read('~m~16~m~~j~{"foo":"bar"}');
+$conn->parse_message('4:1::{"foo":"bar"}');
 is_deeply $output => {foo => 'bar'};
-$output = '';
 
-$conn->read('~m~19~m~~j~{"foo":"' . encode_utf8('привет') . '"}');
+$conn->parse_message('4:1::{"foo":"' . encode_utf8('привет') . '"}');
 is_deeply $output => {foo => 'привет'};
-$output = '';
 
-$conn->read('~m~16~m~~j~{"foo","bar"}');
-is $output => '';
+is $conn->_build_message('foo') => '3:::foo';
+is $conn->_build_message({foo => 'bar'}) => '4:::{"foo":"bar"}';
 
-is $conn->build_message('foo') => '~m~3~m~foo';
-is $conn->build_message({foo => 'bar'}) => '~m~16~m~~j~{"foo":"bar"}';
-
-is $conn->build_message('привет') => '~m~6~m~' . encode_utf8('привет');
-is $conn->build_message({foo => 'привет'}) => '~m~19~m~~j~{"foo":"'
+is $conn->_build_message('привет') => '3:::'
+  . encode_utf8('привет');
+is $conn->_build_message({foo => 'привет'}) => '4:::{"foo":"'
   . encode_utf8('привет') . '"}';

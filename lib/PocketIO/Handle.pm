@@ -9,9 +9,11 @@ use constant DEBUG => $ENV{POCKETIO_HANDLE_DEBUG};
 
 sub new {
     my $class = shift;
-    my ($fh) = @_;
+    my (%params) = @_;
 
-    my $self = {handle => AnyEvent::Handle->new(fh => $fh)};
+    my $fh = delete $params{fh};
+
+    my $self = {handle => AnyEvent::Handle->new(fh => $fh), %params};
     bless $self, $class;
 
     $self->{heartbeat_timeout} ||= 10;

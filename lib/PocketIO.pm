@@ -8,7 +8,7 @@ use base 'Plack::Component';
 our $VERSION = '0.00904';
 
 use Plack::Util ();
-use Plack::Util::Accessor qw(resource handler class instance method);
+use Plack::Util::Accessor qw(handler class instance method);
 
 use PocketIO::Resource;
 
@@ -17,6 +17,8 @@ sub new {
 
     $self->handler($self->_get_handler);
 
+    $self->{socketio} ||= {};
+
     return $self;
 }
 
@@ -24,8 +26,16 @@ sub call {
     my $self = shift;
     my ($env) = @_;
 
-    return PocketIO::Resource->dispatch($env, $self->handler)
+    my $dispatcher = $self->_build_dispatcher(%{$self->{socketio}});
+
+    return $dispatcher->dispatch($env, $self->handler)
       || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
+}
+
+sub _build_dispatcher {
+    my $self = shift;
+
+    return PocketIO::Resource->new(@_);
 }
 
 sub _get_handler {
@@ -56,20 +66,22 @@ PocketIO - Socket.IO middleware
     use Plack::Builder;
 
     builder {
-        enable "SocketIO", handler => sub {
-            my $self = shift;
+        mount '/socket.io' => PocketIO->new(
+            handler => sub {
+                my $self = shift;
 
-            $self->on_message(
-                sub {
-                    my $self = shift;
-                    my ($message) = @_;
+                $self->on_message(
+                    sub {
+                        my $self = shift;
+                        my ($message) = @_;
 
-                    ...
-                }
-            );
+                        ...;
+                    }
+                );
 
-            $self->send_message({buffer => []});
-        };
+                $self->send_message({buffer => []});
+            }
+        );
 
         $app;
     };
@@ -77,14 +89,15 @@ PocketIO - Socket.IO middleware
     # or
 
     builder {
-        enable "SocketIO", class => 'MyApp::Handler', method => 'run';
+        mount '/socket.io' =>
+          PocketIO->new(class => 'MyApp::Handler', method => 'run');
 
         $app;
     };
 
 =head1 DESCRIPTION
 
-L<PocketIO> is a server implmentation of SocketIO in Perl.
+L<PocketIO> is a server implementation of SocketIO in Perl.
 
 =head2 SocketIO
 
@@ -111,36 +124,29 @@ recommended.
 
 =over 4
 
-=item resource
-
-    enable "SocketIO",
-        resource => 'socket.io', ...;
-
-Specifies the path prefix under which all the requests are handled. This is done
-so the rest of your application won't interfere with Socket.IO specific calls.
-
 =item handler
 
-    enable "SocketIO",
+    PocketIO->new(
         handler => sub {
             my $socket = shift;
 
-            $socket->on_message(sub {
-                my $socket = shift;
-            });
+            $socket->on_message(
+                sub {
+                    my $socket = shift;
+                }
+            );
 
             $socket->send_message('hello');
-        };
+        }
+    );
 
 =item class or instance, method
 
-    enable "SocketIO",
-        class => 'MyHandler', method => 'run';
+    PocketIO->new(class => 'MyHandler', method => 'run');
 
     # or
 
-    enable "SocketIO",
-        instance => MyHandler->new(foo => 'bar'), method => 'run';
+    PocketIO->new(instance => MyHandler->new(foo => 'bar'), method => 'run');
 
     package MyHandler;
 
@@ -165,7 +171,7 @@ subroutine.
 
 =head2 Repository
 
-    http://github.com/vti/plack-middleware-socketio
+    http://github.com/vti/pocketio
 
 =head1 CREDITS
 

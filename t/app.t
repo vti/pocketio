@@ -7,8 +7,6 @@ use Test::More tests => 5;
 
 use_ok('PocketIO');
 
-use Handler;
-
 eval {
     PocketIO->new(app => sub { });
 };

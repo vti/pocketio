@@ -5,45 +5,41 @@ use warnings;
 
 use base 'PocketIO::Transport::Base';
 
-use HTTP::Body;
-use PocketIO::Response::Chunked;
-
 sub name {'htmlfile'}
 
 sub dispatch {
     my $self = shift;
-    my ($cb) = @_;
 
     my $req  = $self->req;
     my $name = $self->name;
 
+    return unless $req->path =~ m{^/\d+/$name/(\d+)/?$};
+
+    my $id = $1;
+
     if ($req->method eq 'GET') {
-        return $self->_dispatch_stream($cb) if $req->path =~ m{^/$name//\d+$};
+        return $self->_dispatch_stream($id) ;
     }
 
-    return
-      unless $req->method eq 'POST'
-          && $req->path_info =~ m{^/$name/(\d+)/send$};
-
-    return $self->_dispatch_send($req, $1);
+    return $self->_dispatch_send($id);
 }
 
 sub _dispatch_stream {
     my $self = shift;
-    my ($cb) = @_;
+    my ($id) = @_;
 
-    my $handle = $self->_build_handle($self->env->{'psgix.io'});
+    my $conn = $self->find_connection($id);
+    return unless $conn;
+
+    my $handle = $self->_build_handle(fh => $self->env->{'psgix.io'});
 
     return sub {
-        my $conn = $self->add_connection(on_connect => $cb);
-
-        my $close_cb = sub { $handle->close; $self->client_disconnected($conn); };
+        my $close_cb =
+          sub { $handle->close; $self->client_disconnected($conn); };
         $handle->on_eof($close_cb);
         $handle->on_error($close_cb);
 
         $handle->on_heartbeat(sub { $conn->send_heartbeat });
-
-        my $id = $self->_wrap_into_script($conn->build_id_message);
 
         $handle->write(
             join "\x0d\x0a" => 'HTTP/1.1 200 OK',
@@ -51,19 +47,18 @@ sub _dispatch_stream {
             'Connection: keep-alive',
             'Transfer-Encoding: chunked',
             '',
-            sprintf('%x', 244 + 12),
-            '<html><body>' . (' ' x 244),
-            sprintf('%x', length($id)),
-            $id,
+            sprintf('%x', 173 + 83),
+            '<html><body><script>var _ = function (msg) { parent.s._(msg, document); };</script>'.
+            (' ' x 173),
             ''
         );
 
-        $conn->on_write(
-            sub {
+        $conn->on(
+            write => sub {
                 my $conn = shift;
                 my ($message) = @_;
 
-                $message = $self->_wrap_into_script($message);
+                $message = $self->_format_message($message);
 
                 $handle->write(
                     join "\x0d\x0a" => sprintf('%x', length($message)),
@@ -79,31 +74,24 @@ sub _dispatch_stream {
 
 sub _dispatch_send {
     my $self = shift;
-    my ($req, $id) = @_;
+    my ($id) = @_;
 
     my $conn = $self->find_connection($id);
     return unless $conn;
 
-    my $raw_body = $req->content;
-    my $zeros = $raw_body =~ s/\0//g;
+    my $data = $self->req->content;
 
-    my $body = HTTP::Body->new($self->env->{CONTENT_TYPE},
-        $self->env->{CONTENT_LENGTH} - $zeros);
-    $body->add($raw_body);
+    $conn->parse_message($data);
 
-    my $data = $body->param->{data};
-
-    $conn->read($data);
-
-    return PocketIO::Response::Chunked->finalize;
+    return [200, ['Content-Length' => 1], ['1']];
 }
 
-sub _wrap_into_script {
+sub _format_message {
     my $self = shift;
     my ($message) = @_;
 
     $message =~ s/"/\\"/g;
-    return qq{<script>parent.s._("$message", document);</script>};
+    return qq{<script>_("$message");</script>};
 }
 
 1;

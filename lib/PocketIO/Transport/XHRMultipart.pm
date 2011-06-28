@@ -5,9 +5,6 @@ use warnings;
 
 use base 'PocketIO::Transport::Base';
 
-use PocketIO::Handle;
-use PocketIO::Response::Chunked;
-
 sub new {
     my $self = shift->SUPER::new(@_);
 
@@ -20,30 +17,30 @@ sub name {'xhr-multipart'}
 
 sub dispatch {
     my $self = shift;
-    my ($cb) = @_;
 
     my $req  = $self->req;
     my $name = $self->name;
 
-    return $self->_dispatch_stream($req, $cb) if $req->method eq 'GET';
+    return unless $req->path =~ m{^/\d+/$name/(\d+)/?$};
 
-    return
-      unless $req->method eq 'POST' && $req->path =~ m{^/$name/(\d+)/send$};
+    if ($req->method eq 'GET') {
+        return $self->_dispatch_stream($1);
+    }
 
-    return $self->_dispatch_send($req, $1);
+    return $self->_dispatch_send($1);
 }
 
 sub _dispatch_stream {
     my $self = shift;
-    my ($req, $cb) = @_;
+    my ($id) = @_;
 
-    my $handle = $self->_build_handle($req->env->{'psgix.io'});
+    my $handle = $self->_build_handle($self->req->env->{'psgix.io'});
     return unless $handle;
 
     return sub {
         my $respond = shift;
 
-        my $conn = $self->add_connection(on_connect => $cb);
+        my $conn = $self->find_connection($id);
 
         my $close_cb = sub { $handle->close; $self->client_disconnected($conn); };
         $handle->on_eof($close_cb);
@@ -51,7 +48,7 @@ sub _dispatch_stream {
 
         my $boundary = $self->{boundary};
 
-        $conn->on_write(
+        $conn->on(write =>
             sub {
                 my $self = shift;
                 my ($message) = @_;
@@ -78,8 +75,6 @@ sub _dispatch_stream {
             'Connection: keep-alive', '', ''
         );
 
-        $conn->send_id_message($conn->id);
-
         $self->client_connected($conn);
     };
 }
@@ -95,7 +90,7 @@ sub _dispatch_send {
 
     $conn->read($data);
 
-    return PocketIO::Response::Chunked->finalize;
+    return [200, ['Content-Length' => 1], ['1']];
 }
 
 1;

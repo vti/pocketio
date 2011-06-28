@@ -4,11 +4,9 @@ use strict;
 use warnings;
 
 use AnyEvent;
-use JSON ();
-use Encode ();
-use Try::Tiny;
 
 use PocketIO::Pool;
+use PocketIO::Message;
 
 use constant DEBUG => $ENV{POCKETIO_CONNECTION_DEBUG};
 
@@ -32,9 +30,9 @@ sub new {
     $self->{on_disconnect}       ||= sub { };
     $self->{on_error}            ||= sub { };
 
-    $self->{data} = '';
-
     DEBUG && warn "Connection created\n";
+
+    $self->connecting;
 
     return $self;
 }
@@ -51,9 +49,9 @@ sub connecting {
     $self->{connect_timer} = AnyEvent->timer(
         after => $self->{connect_timeout},
         cb    => sub {
-            DEBUG && warn "Timeout 'connect_timeout'";
+            DEBUG && warn "Timeout 'connect_timeout'\n";
 
-            $self->on('connect_failed')->($self);
+            $self->emit('connect_failed');
         }
     );
 }
@@ -68,7 +66,7 @@ sub reconnecting {
         cb    => sub {
             DEBUG && warn "Timeout 'reconnect_timeout'\n";
 
-            $self->on('reconnect_failed')->($self);
+            $self->emit('reconnect_failed');
         }
     );
 }
@@ -82,7 +80,10 @@ sub connected {
 
     $self->{is_connected} = 1;
 
-    $self->on('connect')->($self);
+    $self->emit('connect');
+
+    my $message = PocketIO::Message->new(type => 'connect')->to_bytes;
+    $self->_write($message);
 
     return $self;
 }
@@ -94,7 +95,7 @@ sub reconnected {
 
     delete $self->{reconnect_timer};
 
-    $self->on('reconnect')->($self);
+    $self->emit('reconnect');
 
     return $self;
 }
@@ -115,7 +116,7 @@ sub disconnected {
     $self->{disconnect_timer} = AnyEvent->timer(
         after => 0,
         cb    => sub {
-            $self->on('disconnect')->($self);
+            $self->emit('disconnect');
         }
     );
 
@@ -130,13 +131,8 @@ sub id {
     return $self->{id};
 }
 
-sub on_message    { shift->on(message    => @_) }
-sub on_disconnect { shift->on(disconnect => @_) }
-sub on_error      { shift->on(error      => @_) }
-sub on_write      { shift->on(write      => @_) }
-
 sub on {
-    my $self = shift;
+    my $self  = shift;
     my $event = shift;
 
     my $name = "on_$event";
@@ -152,16 +148,52 @@ sub on {
     return $self;
 }
 
-sub read {
+sub emit {
+    my $self  = shift;
+    my $event = shift;
+
+    $event = "on_$event";
+
+    return unless exists $self->{$event};
+
+    DEBUG && warn "Emitting '$event'\n";
+
+    $self->{$event}->($self, @_);
+
+    return $self;
+}
+
+sub parse_message {
     my $self = shift;
-    my ($data) = @_;
+    my ($message) = @_;
 
-    return $self unless defined $data;
+    $message = PocketIO::Message->new->parse($message);
+    return unless $message;
 
-    $self->{data} .= Encode::decode('UTF-8', $data);
+    if ($message->is_message) {
+        $self->emit('message', $message->data);
+    }
+    elsif ($message->type eq 'event') {
+        my $name = $message->data->{name};
+        my $args = $message->data->{args};
 
-    while (my $message = $self->_parse_data) {
-        $self->on('message')->($self, $message);
+        my $id = $message->id;
+
+        $self->emit($name, @$args, sub {
+            my $message = PocketIO::Message->new(
+                type       => 'ack',
+                message_id => $id,
+                args       => [@_]
+            )->to_bytes;
+
+            $self->_write($message);
+        });
+    }
+    elsif ($message->type eq 'heartbeat') {
+        # TODO
+    }
+    else {
+        die 'TODO';
     }
 
     return $self;
@@ -172,21 +204,18 @@ sub send_heartbeat {
 
     $self->{heartbeat}++;
 
-    return $self->send_message('~h~' . $self->{heartbeat});
+    my $message = PocketIO::Message->new(type => 'heartbeat')->to_bytes;
+
+    return $self->_write($message);
 }
 
 sub send_message {
     my $self = shift;
     my ($message) = @_;
 
-    $message = $self->build_message($message);
+    $message = $self->_build_message($message);
 
-    if ($self->on_write) {
-        $self->on('write')->($self, $message);
-    }
-    else {
-        $self->stage_message($message);
-    }
+    $self->_write($message);
 
     return $self;
 }
@@ -214,6 +243,37 @@ sub staged_message {
     return shift @{$self->{messages}};
 }
 
+sub emit_broadcast {
+    my $self  = shift;
+    my $event = shift;
+
+    foreach my $conn (PocketIO::Pool->connections) {
+        next if $conn->id eq $self->id;
+        next unless $conn->is_connected;
+
+        my $event = $self->_build_event_message($event, @_);
+
+        $conn->_write($event);
+    }
+
+    return $self;
+}
+
+sub emit_broadcast_to_all {
+    my $self  = shift;
+    my $event = shift;
+
+    foreach my $conn (PocketIO::Pool->connections) {
+        next unless $conn->is_connected;
+
+        my $event = $self->_build_event_message($event, @_);
+
+        $conn->_write($event);
+    }
+
+    return $self;
+}
+
 sub send_broadcast {
     my $self = shift;
     my ($message) = @_;
@@ -228,34 +288,34 @@ sub send_broadcast {
     return $self;
 }
 
-sub send_id_message {
-    my $self = shift;
-
-    my $message = $self->build_id_message;
-
-    $self->on('write')->($self, $message);
-
-    return $self;
-}
-
-sub build_id_message {
-    my $self = shift;
-
-    return $self->build_message($self->id);
-}
-
-sub build_message {
+sub _build_message {
     my $self = shift;
     my ($message) = @_;
 
-    if (ref $message) {
-        $message = '~j~' . JSON::encode_json($message);
+    return PocketIO::Message->new(data => $message)->to_bytes;
+}
+
+sub _build_event_message {
+    my $self = shift;
+    my $event = shift;
+
+    return PocketIO::Message->new(
+        type => 'event',
+        data => {name => $event, args => [@_]}
+    )->to_bytes;
+}
+
+sub _write {
+    my $self = shift;
+    my ($bytes) = @_;
+
+    if ($self->on('write')) {
+        DEBUG && warn "Writing '" . substr($bytes, 0, 50) . "'\n";
+        $self->emit('write', $bytes);
     }
     else {
-        $message = Encode::encode('UTF-8', $message);
+        $self->stage_message($bytes);
     }
-
-    return '~m~' . length(Encode::decode('UTF-8', $message)) . '~m~' . $message;
 }
 
 sub _generate_id {
@@ -268,40 +328,6 @@ sub _generate_id {
     }
 
     return $string;
-}
-
-sub _parse_data {
-    my $self = shift;
-
-    if ($self->{data} =~ s/^~m~(\d+)~m~//) {
-        my $length = $1;
-
-        my $message = substr($self->{data}, 0, $length, '');
-        if (length($message) == $length) {
-            if ($message =~ m/^~h~(\d+)/) {
-                my $heartbeat = $1;
-
-                return $self->_parse_data;
-            }
-            elsif ($message =~ m/^~j~(.*)/) {
-                my $json;
-
-                try {
-                    $json = JSON::decode_json(Encode::encode('UTF-8', $1));
-                };
-
-                return $json if defined $json;
-
-                return $self->_parse_data;
-            }
-            else {
-                return $message;
-            }
-        }
-    }
-
-    $self->{data} = '';
-    return;
 }
 
 1;

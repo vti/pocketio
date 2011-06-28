@@ -5,30 +5,20 @@ use warnings;
 
 use base 'PocketIO::Transport::Base';
 
-use PocketIO::Response::Chunked;
-
-sub _dispatch_init {
+sub dispatch {
     my $self = shift;
     my ($cb) = @_;
 
-    my $conn;
-    $conn = $self->add_connection(
-        on_connect          => $cb,
-        on_reconnect_failed => sub {
-            $self->client_disconnected($conn);
-        }
-    );
+    my $req  = $self->req;
+    my $name = $self->name;
 
-    my $body = $self->_format_message($conn->build_id_message);
+    return unless $req->path =~ m{^/\d+/$name/(\d+)/?$};
 
-    return [
-        200,
-        [   'Content-Type'   => 'text/plain',
-            'Content-Length' => length($body),
-            'Connection'     => 'keep-alive'
-        ],
-        [$body]
-    ];
+    if ($req->method eq 'GET') {
+        return $self->_dispatch_stream($1);
+    }
+
+    return $self->_dispatch_send($1);
 }
 
 sub _dispatch_stream {
@@ -38,12 +28,13 @@ sub _dispatch_stream {
     my $conn = $self->find_connection($id);
     return unless $conn;
 
-    my $handle = $self->_build_handle($self->env->{'psgix.io'});
+    my $handle = $self->_build_handle(fh => $self->env->{'psgix.io'});
 
     return sub {
         my $respond = shift;
 
-        my $close_cb = sub { $handle->close; $self->client_disconnected($conn); };
+        my $close_cb =
+          sub { $handle->close; $self->client_disconnected($conn); };
         $handle->on_eof($close_cb);
         $handle->on_error($close_cb);
 
@@ -53,12 +44,12 @@ sub _dispatch_stream {
             $self->_write($conn, $handle, $conn->staged_message);
         }
         else {
-            $conn->on_write(
-                sub {
+            $conn->on(
+                write => sub {
                     my $conn = shift;
                     my ($message) = @_;
 
-                    $conn->on_write(undef);
+                    $conn->on(write => undef);
                     $self->_write($conn, $handle, $message);
                 }
             );
@@ -75,17 +66,21 @@ sub _dispatch_stream {
 
 sub _dispatch_send {
     my $self = shift;
-    my ($req, $id) = @_;
+    my ($id) = @_;
 
     my $conn = $self->find_connection($id);
     return unless $conn;
 
-    my $data = $req->body_parameters->get('data');
+    my $data = $self->_get_content;
 
-    $conn->read($data);
+    $conn->parse_message($data);
 
-    return PocketIO::Response::Chunked->finalize;
+    return [200, ['Content-Length' => 1], ['1']];
 }
+
+sub _get_content { $_[0]->req->content }
+
+sub _content_type {'text/plain'}
 
 sub _write {
     my $self = shift;
@@ -96,7 +91,7 @@ sub _write {
     $handle->write(
         join(
             "\x0d\x0a" => 'HTTP/1.1 200 OK',
-            'Content-Type: text/plain',
+            'Content-Type: ' . $self->_content_type,
             'Content-Length: ' . length($message), '', $message
         ),
         sub {

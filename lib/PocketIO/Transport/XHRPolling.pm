@@ -7,27 +7,6 @@ use base 'PocketIO::Transport::BasePolling';
 
 sub name {'xhr-polling'}
 
-sub dispatch {
-    my $self = shift;
-    my ($cb) = @_;
-
-    my $req  = $self->req;
-    my $name = $self->name;
-
-    if ($req->method eq 'GET') {
-        return $self->_dispatch_init($cb) if $req->path =~ m{^/$name//\d+$};
-
-        return $self->_dispatch_stream($1)
-          if $req->path =~ m{^/$name/(\d+)/\d+$};
-    }
-
-    return
-      unless $req->method eq 'POST'
-          && $req->path_info =~ m{^/$name/(\d+)/send$};
-
-    return $self->_dispatch_send($req, $1);
-}
-
 1;
 __END__
 

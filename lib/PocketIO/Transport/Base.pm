@@ -18,13 +18,21 @@ sub new {
     my $self = bless {@_}, $class;
 
     weaken $self->{env};
-    $self->{req} = Plack::Request->new($self->{env});
+    weaken $self->{conn};
 
     return $self;
 }
 
-sub req { shift->{req} }
-sub env { shift->{req}->{env} }
+sub req  {
+    my $self = shift;
+
+    $self->{req} ||= Plack::Request->new($self->{env});
+
+    return $self->{req};
+}
+
+sub env  { $_[0]->{env} }
+sub conn { $_[0]->{conn} }
 
 sub add_connection {
     my $self = shift;
@@ -110,7 +118,10 @@ sub _get_logger {
 sub _build_handle {
     my $self = shift;
 
-    return PocketIO::Handle->new(@_);
+    my $heartbeat_timeout = $self->{heartbeat_timeout};
+    $heartbeat_timeout -= 5;
+
+    return PocketIO::Handle->new(heartbeat_timeout => $heartbeat_timeout, @_);
 }
 
 1;

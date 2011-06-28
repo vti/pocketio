@@ -14,7 +14,6 @@ sub name {'websocket'}
 
 sub dispatch {
     my $self = shift;
-    my ($cb) = @_;
 
     my $fh = $self->req->env->{'psgix.io'};
     return unless $fh;
@@ -24,7 +23,7 @@ sub dispatch {
 
     return unless $hs->is_done;
 
-    my $handle = $self->_build_handle($fh);
+    my $handle = $self->_build_handle(fh => $fh);
     my $frame = Protocol::WebSocket::Frame->new;
 
     return sub {
@@ -34,7 +33,7 @@ sub dispatch {
             $hs->to_string => sub {
                 my $handle = shift;
 
-                my $conn = $self->add_connection(on_connect => $cb);
+                my $conn = $self->conn;
 
                 my $close_cb = sub {
                     $handle->close;
@@ -50,13 +49,13 @@ sub dispatch {
                         $frame->append($_[1]);
 
                         while (my $message = $frame->next_bytes) {
-                            $conn->read($message);
+                            $conn->parse_message($message);
                         }
                     }
                 );
 
-                $conn->on_write(
-                    sub {
+                $conn->on(
+                    'write' => sub {
                         my $bytes = $self->_build_frame($_[1]);
 
                         $handle->write($bytes);
@@ -64,8 +63,6 @@ sub dispatch {
                 );
 
                 $self->client_connected($conn);
-
-                $conn->send_id_message($conn->id);
             }
         );
     };
