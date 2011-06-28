@@ -37,8 +37,6 @@ Just run C<twiggy> or C<fliggy> and you are ready to go:
 
 And point your browser to C<http://localhost:3000/>.
 
-=back
-
 =head1 TLS/SSL
 
 For TLS/SSL a secure proxy is needed. C<stunnel> or L<App::TLSMe> is
