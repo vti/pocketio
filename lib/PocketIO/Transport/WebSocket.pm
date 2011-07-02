@@ -18,7 +18,8 @@ sub dispatch {
     my $fh = $self->req->env->{'psgix.io'};
     return unless $fh;
 
-    my $hs = Protocol::WebSocket::Handshake::Server->new_from_psgi($self->req->env);
+    my $hs =
+      Protocol::WebSocket::Handshake::Server->new_from_psgi($self->req->env);
     return unless $hs->parse($fh);
 
     return unless $hs->is_done;
@@ -55,7 +56,18 @@ sub dispatch {
                 );
 
                 $conn->on(
-                    'write' => sub {
+                    close => sub {
+                        my $conn = shift;
+
+                        # $handle->write(); TODO write WebSocket EOF
+
+                        $handle->close;
+                        $self->client_disconnected($conn);
+                    }
+                );
+
+                $conn->on(
+                    write => sub {
                         my $bytes = $self->_build_frame($_[1]);
 
                         $handle->write($bytes);

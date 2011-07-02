@@ -55,6 +55,8 @@ sub _dispatch_stream {
             );
         }
 
+        $conn->on(close => $close_cb);
+
         if ($conn->is_connected) {
             $conn->reconnected;
         }

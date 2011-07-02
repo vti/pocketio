@@ -68,6 +68,8 @@ sub _dispatch_stream {
             }
         );
 
+        $conn->on(close => $close_cb);
+
         $self->client_connected($conn);
     };
 }

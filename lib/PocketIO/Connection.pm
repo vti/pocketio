@@ -18,6 +18,7 @@ sub new {
 
     $self->{connect_timeout}   ||= 15;
     $self->{reconnect_timeout} ||= 15;
+    $self->{close_timeout}     ||= 15;
 
     $self->{max_messages_to_stage} ||= 32;
     $self->{messages} = [];
@@ -29,6 +30,7 @@ sub new {
     $self->{on_message}          ||= sub { };
     $self->{on_disconnect}       ||= sub { };
     $self->{on_error}            ||= sub { };
+    $self->{on_close}            ||= sub { };
 
     DEBUG && warn "Connection created\n";
 
@@ -85,6 +87,8 @@ sub connected {
     my $message = PocketIO::Message->new(type => 'connect')->to_bytes;
     $self->_write($message);
 
+    $self->_init_close_timer;
+
     return $self;
 }
 
@@ -97,6 +101,8 @@ sub reconnected {
 
     $self->emit('reconnect');
 
+    $self->_init_close_timer;
+
     return $self;
 }
 
@@ -107,11 +113,13 @@ sub disconnected {
 
     delete $self->{connect_timer};
     delete $self->{reconnect_timer};
+    delete $self->{close_timer};
 
     $self->{data}     = '';
     $self->{messages} = [];
 
     $self->{is_connected} = 0;
+
 
     $self->{disconnect_timer} = AnyEvent->timer(
         after => 0,
@@ -119,6 +127,16 @@ sub disconnected {
             $self->emit('disconnect');
         }
     );
+
+    return $self;
+}
+
+sub close {
+    my $self = shift;
+
+    $self->emit('close');
+
+    $self->disconnected;
 
     return $self;
 }
@@ -170,6 +188,8 @@ sub parse_message {
     $message = PocketIO::Message->new->parse($message);
     return unless $message;
 
+    delete $self->{close_timer};
+
     if ($message->is_message) {
         $self->emit('message', $message->data);
     }
@@ -195,6 +215,8 @@ sub parse_message {
     else {
         die 'TODO';
     }
+
+    $self->_init_close_timer;
 
     return $self;
 }
@@ -286,6 +308,21 @@ sub send_broadcast {
     }
 
     return $self;
+}
+
+sub _init_close_timer {
+    my $self = shift;
+
+    DEBUG && warn "Start 'close_timer'\n";
+
+    $self->{close_timer} = AnyEvent->timer(
+        after => $self->{close_timeout},
+        cb    => sub {
+            DEBUG && warn "Timeout 'close_timeout'\n";
+
+            $self->close;
+        }
+    );
 }
 
 sub _build_message {
