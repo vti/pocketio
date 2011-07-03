@@ -16,7 +16,7 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
-    $self->{connect_timeout}   ||= 15;
+    $self->{connect_timeout}   ||= 5;
     $self->{reconnect_timeout} ||= 15;
     $self->{close_timeout}     ||= 15;
 
@@ -312,6 +312,7 @@ sub send_broadcast {
 
 sub _init_close_timer {
     my $self = shift;
+    return;
 
     DEBUG && warn "Start 'close_timer'\n";
 

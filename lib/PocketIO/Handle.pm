@@ -34,8 +34,8 @@ sub on_heartbeat {
     my $self = shift;
     my ($cb) = @_;
 
-    $self->{handle}->timeout($self->{heartbeat_timeout});
-    $self->{handle}->on_timeout($cb);
+    $self->{handle}->wtimeout($self->{heartbeat_timeout});
+    $self->{handle}->on_wtimeout($cb);
 
     return $self;
 }
@@ -115,7 +115,7 @@ sub close {
     my $handle = delete $self->{handle};
     return $self unless $handle;
 
-    $handle->timeout(0);
+    $handle->wtimeout(0);
 
     $handle->on_drain;
     $handle->on_error;
