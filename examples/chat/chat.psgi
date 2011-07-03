@@ -23,6 +23,9 @@ builder {
     mount '/socket.io/socket.io.js' =>
       Plack::App::File->new(file => "$root/public/socket.io.js");
 
+    mount '/socket.io/static/flashsocket/WebSocketMain.swf' =>
+      Plack::App::File->new(file => "$root/public/WebSocketMain.swf");
+
     mount '/socket.io' => PocketIO->new(
         handler => sub {
             my $self = shift;
