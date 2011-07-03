@@ -91,7 +91,7 @@ sub _dispatch_handshake {
     my $handshake = join ':', $conn->id, $self->{heartbeat_timeout},
       $self->{close_timeout}, $transports;
 
-    return [200, ['Content-Length' => length $handshake], [$handshake]];
+    return [200, ['Content-Type' => 'text/plain', 'Content-Length' => length $handshake], [$handshake]];
 }
 
 sub _build_connection {
