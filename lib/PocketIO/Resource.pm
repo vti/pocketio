@@ -3,6 +3,8 @@ package PocketIO::Resource;
 use strict;
 use warnings;
 
+use Plack::Request;
+
 use PocketIO::Transport::Htmlfile;
 use PocketIO::Transport::JSONPPolling;
 use PocketIO::Transport::WebSocket;
@@ -52,7 +54,7 @@ sub dispatch {
     return unless $protocol_version && $protocol_version =~ m/^\d+$/;
 
     if (!$transport_id && !$session_id) {
-        return $self->_dispatch_handshake($cb);
+        return $self->_dispatch_handshake($env, $cb);
     }
 
     return unless $transport_id && $session_id;
@@ -74,7 +76,7 @@ sub dispatch {
 
 sub _dispatch_handshake {
     my $self = shift;
-    my ($cb) = @_;
+    my ($env, $cb) = @_;
 
     my $max_connections = $self->{max_connections};
     my $cur_connections = PocketIO::Pool->connections;
@@ -91,7 +93,20 @@ sub _dispatch_handshake {
     my $handshake = join ':', $conn->id, $self->{heartbeat_timeout},
       $self->{close_timeout}, $transports;
 
-    return [200, ['Content-Type' => 'text/plain', 'Content-Length' => length $handshake], [$handshake]];
+    my $req = Plack::Request->new($env);
+    my $res = $req->new_response(200);
+
+    # XDomain request
+    if (defined(my $jsonp = $req->param('jsonp'))) {
+        $res->content_type('application/javascript');
+        $res->body(qq{io.j[$jsonp]("$handshake");});
+    }
+    else {
+        $res->content_type('text/html');
+        $res->body($handshake);
+    }
+
+    return $res->finalize;
 }
 
 sub _build_connection {
