@@ -30,7 +30,7 @@ sub new {
     $self->{close_timeout}     ||= 10;
     $self->{max_connections}   ||= 100;
 
-    $self->{transports} ||= [sort keys %TRANSPORTS];
+    $self->{transports} ||= [qw/websocket flashsocket htmlfile xhr-polling jsonp-polling/];
 
     return $self;
 }
