@@ -28,8 +28,8 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
-    $self->{heartbeat_timeout} ||= 10;
-    $self->{close_timeout}     ||= 10;
+    $self->{heartbeat_timeout} ||= 15;
+    $self->{close_timeout}     ||= 25;
     $self->{max_connections}   ||= 100;
 
     $self->{transports} ||= [qw/websocket flashsocket htmlfile xhr-polling jsonp-polling/];
@@ -96,13 +96,15 @@ sub _dispatch_handshake {
     my $req = Plack::Request->new($env);
     my $res = $req->new_response(200);
 
+    $res->headers->header('Connection' => 'keep-alive');
+
     # XDomain request
     if (defined(my $jsonp = $req->param('jsonp'))) {
         $res->content_type('application/javascript');
         $res->body(qq{io.j[$jsonp]("$handshake");});
     }
     else {
-        $res->content_type('text/html');
+        $res->content_type('text/plain');
         $res->body($handshake);
     }
 

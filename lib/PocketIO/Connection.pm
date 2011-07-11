@@ -16,7 +16,7 @@ sub new {
     my $self = {@_};
     bless $self, $class;
 
-    $self->{connect_timeout}   ||= 5;
+    $self->{connect_timeout}   ||= 15;
     $self->{reconnect_timeout} ||= 15;
     $self->{close_timeout}     ||= 15;
 
