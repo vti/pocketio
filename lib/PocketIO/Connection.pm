@@ -219,6 +219,8 @@ sub send_heartbeat {
 
     $self->{heartbeat}++;
 
+    DEBUG && warn time . ": Send heartbeat\n";
+
     my $message = PocketIO::Message->new(type => 'heartbeat')->to_bytes;
 
     return $self->_write($message);
@@ -309,12 +311,12 @@ sub _start_timer {
 
     my $timeout = $self->{"${timer}_timeout"};
 
-    DEBUG && warn "Start '${timer}_timer' ($timeout)\n";
+    DEBUG && warn time . ": Start '${timer}_timer' ($timeout)\n";
 
     $self->{"${timer}_timer"} = AnyEvent->timer(
         after => $timeout,
         cb    => sub {
-            DEBUG && warn "Timeout '${timer}_timeout'\n";
+            DEBUG && warn time . ": Timeout '${timer}_timeout'\n";
 
             $self->{"on_${timer}_timeout"}->($self);
         }
@@ -325,7 +327,7 @@ sub _stop_timer {
     my $self = shift;
     my ($timer) = @_;
 
-    DEBUG && warn "Stop '${timer}_timer'\n";
+    DEBUG && warn time . ": Stop '${timer}_timer'\n";
 
     delete $self->{"${timer}_timer"};
 }
