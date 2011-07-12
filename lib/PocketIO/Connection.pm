@@ -36,7 +36,7 @@ sub new {
     $self->{on_error}            ||= sub { };
     $self->{on_close}            ||= sub { };
 
-    DEBUG && warn "Connection created\n";
+    DEBUG && $self->_debug('Connection created');
 
     $self->connecting;
 
@@ -50,7 +50,7 @@ sub is_connected { $_[0]->{is_connected} }
 sub connecting {
     my $self = shift;
 
-    DEBUG && warn "State 'connecting'\n";
+    DEBUG && $self->_debug("State 'connecting'");
 
     $self->_start_timer('connect');
 }
@@ -58,7 +58,7 @@ sub connecting {
 sub reconnecting {
     my $self = shift;
 
-    DEBUG && warn "State 'reconnecting'\n";
+    DEBUG && $self->_debug("State 'reconnecting'");
 
     $self->_stop_timer('close');
 
@@ -68,7 +68,7 @@ sub reconnecting {
 sub connected {
     my $self = shift;
 
-    DEBUG && warn "State 'connected'\n";
+    DEBUG && $self->_debug("State 'connected'");
 
     $self->_stop_timer('connect');
 
@@ -87,7 +87,7 @@ sub connected {
 sub reconnected {
     my $self = shift;
 
-    DEBUG && warn "State 'reconnected'\n";
+    DEBUG && $self->_debug("State 'reconnected'");
 
     $self->_stop_timer('reconnect');
 
@@ -101,7 +101,7 @@ sub reconnected {
 sub disconnected {
     my $self = shift;
 
-    DEBUG && warn "State 'disconnected'\n";
+    DEBUG && $self->_debug("State 'disconnected'");
 
     $self->_stop_timer('connect');
     $self->_stop_timer('reconnect');
@@ -127,7 +127,7 @@ sub close {
 
     $self->emit('close');
 
-    $self->disconnected;
+    #$self->disconnected;
 
     return $self;
 }
@@ -147,7 +147,7 @@ sub on {
     my $name = "on_$event";
 
     unless (@_) {
-        DEBUG && warn "Event 'on_$event'\n";
+        DEBUG && $self->_debug("Event 'on_$event'");
 
         return $self->{$name};
     }
@@ -165,7 +165,7 @@ sub emit {
 
     return unless exists $self->{$event};
 
-    DEBUG && warn "Emitting '$event'\n";
+    DEBUG && $self->_debug("Emitting '$event'");
 
     $self->{$event}->($self, @_);
 
@@ -176,7 +176,7 @@ sub parse_message {
     my $self = shift;
     my ($message) = @_;
 
-    DEBUG && warn "Received '" . substr($message, 0, 80) . "'\n";
+    DEBUG && $self->_debug("Received '" . substr($message, 0, 80) . "'");
 
     $message = PocketIO::Message->new->parse($message);
     return unless $message;
@@ -219,7 +219,7 @@ sub send_heartbeat {
 
     $self->{heartbeat}++;
 
-    DEBUG && warn time . ": Send heartbeat\n";
+    DEBUG && $self->_debug('Send heartbeat');
 
     my $message = PocketIO::Message->new(type => 'heartbeat')->to_bytes;
 
@@ -270,6 +270,9 @@ sub emit_broadcast {
 
         my $event = $self->_build_event_message($event, @_);
 
+        # Broadcasting counts as a heartbeat
+        $conn->_restart_timer('close');
+
         $conn->_write($event);
     }
 
@@ -285,6 +288,9 @@ sub emit_broadcast_to_all {
 
         my $event = $self->_build_event_message($event, @_);
 
+        # Broadcasting counts as a heartbeat
+        $conn->_restart_timer('close');
+
         $conn->_write($event);
     }
 
@@ -299,6 +305,9 @@ sub send_broadcast {
         next if $conn->id eq $self->id;
         next unless $conn->is_connected;
 
+        # Broadcasting counts as a heartbeat
+        $conn->_restart_timer('close');
+
         $conn->send_message($message);
     }
 
@@ -311,12 +320,12 @@ sub _start_timer {
 
     my $timeout = $self->{"${timer}_timeout"};
 
-    DEBUG && warn time . ": Start '${timer}_timer' ($timeout)\n";
+    DEBUG && $self->_debug("Start '${timer}_timer' ($timeout)");
 
     $self->{"${timer}_timer"} = AnyEvent->timer(
         after => $timeout,
         cb    => sub {
-            DEBUG && warn time . ": Timeout '${timer}_timeout'\n";
+            DEBUG && $self->_debug("Timeout '${timer}_timeout'");
 
             $self->{"on_${timer}_timeout"}->($self);
         }
@@ -327,9 +336,17 @@ sub _stop_timer {
     my $self = shift;
     my ($timer) = @_;
 
-    DEBUG && warn time . ": Stop '${timer}_timer'\n";
+    DEBUG && $self->_debug("Stop '${timer}_timer'");
 
     delete $self->{"${timer}_timer"};
+}
+
+sub _restart_timer {
+    my $self = shift;
+    my ($timer) = @_;
+
+    $self->_stop_timer($timer);
+    $self->_start_timer($timer);
 }
 
 sub _build_message {
@@ -354,7 +371,7 @@ sub _write {
     my ($bytes) = @_;
 
     if ($self->on('write')) {
-        DEBUG && warn "Writing '" . substr($bytes, 0, 50) . "'\n";
+        DEBUG && $self->_debug("Writing '" . substr($bytes, 0, 50) . "'");
         $self->emit('write', $bytes);
     }
     else {
@@ -372,6 +389,13 @@ sub _generate_id {
     }
 
     return $string;
+}
+
+sub _debug {
+    my $self = shift;
+    my ($message) = @_;
+
+    warn time . ' (' . $self->id . '): ' . $message . "\n";
 }
 
 1;
