@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 12;
+use Test::More tests => 11;
 
 use_ok('PocketIO::Resource');
 
@@ -18,17 +18,20 @@ ok !PocketIO::Resource->new->dispatch(
 
 my $res = $d->dispatch({REQUEST_METHOD => 'POST', PATH_INFO => '/1/'}, $cb);
 is $res->[0], 200;
-is_deeply $res->[1], ['Content-Length' => 79];
+is_deeply $res->[1],
+  [ 'Connection'     => 'keep-alive',
+    'Content-Length' => 79,
+    'Content-Type'   => 'text/plain',
+  ];
 like $res->[2]->[0],
-  qr/^\d+:10:10:flashsocket,htmlfile,jsonp-polling,websocket,xhr-polling$/;
+  qr/^\d+:15:25:websocket,flashsocket,htmlfile,jsonp-polling,xhr-polling$/;
 
 $res =
   PocketIO::Resource->new(heartbeat_timeout => 15, close_timeout => 20)
   ->dispatch({REQUEST_METHOD => 'POST', PATH_INFO => '/1/'}, $cb);
 is $res->[0], 200;
-is_deeply $res->[1], ['Content-Length' => 79];
 like $res->[2]->[0],
-  qr/^\d+:15:20:flashsocket,htmlfile,jsonp-polling,websocket,xhr-polling$/;
+  qr/^\d+:15:20:websocket,flashsocket,htmlfile,jsonp-polling,xhr-polling$/;
 
 PocketIO::Pool->reset;
 

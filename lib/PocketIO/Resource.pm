@@ -32,7 +32,7 @@ sub new {
     $self->{close_timeout}     ||= 25;
     $self->{max_connections}   ||= 100;
 
-    $self->{transports} ||= [qw/websocket flashsocket htmlfile xhr-polling jsonp-polling/];
+    $self->{transports} ||= [qw/websocket flashsocket htmlfile jsonp-polling xhr-polling/];
 
     return $self;
 }
@@ -96,17 +96,19 @@ sub _dispatch_handshake {
     my $req = Plack::Request->new($env);
     my $res = $req->new_response(200);
 
-    $res->headers->header('Connection' => 'keep-alive');
-
     # XDomain request
     if (defined(my $jsonp = $req->param('jsonp'))) {
         $res->content_type('application/javascript');
-        $res->body(qq{io.j[$jsonp]("$handshake");});
+        $handshake = qq{io.j[$jsonp]("$handshake");};
     }
     else {
         $res->content_type('text/plain');
-        $res->body($handshake);
     }
+
+    $res->headers->header('Connection' => 'keep-alive');
+    $res->headers->header('Content-Length' => length($handshake));
+
+    $res->body($handshake);
 
     return $res->finalize;
 }

@@ -188,6 +188,7 @@ sub parse_message {
     $message = PocketIO::Message->new->parse($message);
     return unless $message;
 
+    DEBUG && warn "Stop 'close_timer'\n";
     delete $self->{close_timer};
 
     if ($message->is_message) {
@@ -312,7 +313,6 @@ sub send_broadcast {
 
 sub _init_close_timer {
     my $self = shift;
-    return;
 
     DEBUG && warn "Start 'close_timer'\n";
 

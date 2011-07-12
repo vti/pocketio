@@ -4,7 +4,7 @@ use utf8;
 
 use Encode ();
 
-use Test::More tests => 24;
+use Test::More tests => 25;
 
 use_ok('PocketIO::Message');
 
@@ -49,6 +49,9 @@ $m = PocketIO::Message->new(
     data => {name => 'foo', args => ['foo']}
 );
 is $m->to_bytes, '5:1::{"args":["foo"],"name":"foo"}';
+
+$m = PocketIO::Message->new->parse('5:1+::{"args":["foo"],"name":"foo"}');
+is $m->id => '1';
 
 $m = PocketIO::Message->new(type => 'ack', message_id => 4);
 is $m->to_bytes, '6:::4';

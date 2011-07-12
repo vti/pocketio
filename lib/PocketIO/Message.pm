@@ -48,6 +48,10 @@ sub parse {
     ($self->{type}, $self->{id}, $self->{endpoint}, $self->{data}) =
       split ':', $string, 4;
 
+    if ($self->{id} =~ s/\+$//) {
+        # TODO ack
+    }
+
     my %swapped = reverse %TYPES;
     $self->{type} = $swapped{$self->{type}};
 
