@@ -20,6 +20,10 @@ sub new {
     $self->{reconnect_timeout} ||= 15;
     $self->{close_timeout}     ||= 15;
 
+    $self->{on_connect_timeout}   = sub { $_[0]->emit('connect_failed') };
+    $self->{on_reconnect_timeout} = sub { $_[0]->emit('reconnect_failed') };
+    $self->{on_close_timeout}     = sub { $_[0]->close };
+
     $self->{max_messages_to_stage} ||= 32;
     $self->{messages} = [];
 
@@ -48,14 +52,7 @@ sub connecting {
 
     DEBUG && warn "State 'connecting'\n";
 
-    $self->{connect_timer} = AnyEvent->timer(
-        after => $self->{connect_timeout},
-        cb    => sub {
-            DEBUG && warn "Timeout 'connect_timeout'\n";
-
-            $self->emit('connect_failed');
-        }
-    );
+    $self->_start_timer('connect');
 }
 
 sub reconnecting {
@@ -63,14 +60,9 @@ sub reconnecting {
 
     DEBUG && warn "State 'reconnecting'\n";
 
-    $self->{reconnect_timer} = AnyEvent->timer(
-        after => $self->{reconnect_timeout},
-        cb    => sub {
-            DEBUG && warn "Timeout 'reconnect_timeout'\n";
+    $self->_stop_timer('close');
 
-            $self->emit('reconnect_failed');
-        }
-    );
+    $self->_start_timer('reconnect');
 }
 
 sub connected {
@@ -78,7 +70,7 @@ sub connected {
 
     DEBUG && warn "State 'connected'\n";
 
-    delete $self->{connect_timer};
+    $self->_stop_timer('connect');
 
     $self->{is_connected} = 1;
 
@@ -87,7 +79,7 @@ sub connected {
     my $message = PocketIO::Message->new(type => 'connect')->to_bytes;
     $self->_write($message);
 
-    $self->_init_close_timer;
+    $self->_start_timer('close');
 
     return $self;
 }
@@ -97,11 +89,11 @@ sub reconnected {
 
     DEBUG && warn "State 'reconnected'\n";
 
-    delete $self->{reconnect_timer};
+    $self->_stop_timer('reconnect');
 
     $self->emit('reconnect');
 
-    $self->_init_close_timer;
+    $self->_start_timer('close');
 
     return $self;
 }
@@ -111,15 +103,14 @@ sub disconnected {
 
     DEBUG && warn "State 'disconnected'\n";
 
-    delete $self->{connect_timer};
-    delete $self->{reconnect_timer};
-    delete $self->{close_timer};
+    $self->_stop_timer('connect');
+    $self->_stop_timer('reconnect');
+    $self->_stop_timer('close');
 
     $self->{data}     = '';
     $self->{messages} = [];
 
     $self->{is_connected} = 0;
-
 
     $self->{disconnect_timer} = AnyEvent->timer(
         after => 0,
@@ -190,8 +181,7 @@ sub parse_message {
     $message = PocketIO::Message->new->parse($message);
     return unless $message;
 
-    DEBUG && warn "Stop 'close_timer'\n";
-    delete $self->{close_timer};
+    $self->_stop_timer('close');
 
     if ($message->is_message) {
         $self->emit('message', $message->data);
@@ -219,7 +209,7 @@ sub parse_message {
         # TODO
     }
 
-    $self->_init_close_timer;
+    $self->_start_timer('close');
 
     return $self;
 }
@@ -313,19 +303,31 @@ sub send_broadcast {
     return $self;
 }
 
-sub _init_close_timer {
+sub _start_timer {
     my $self = shift;
+    my ($timer) = @_;
 
-    DEBUG && warn "Start 'close_timer'\n";
+    my $timeout = $self->{"${timer}_timeout"};
 
-    $self->{close_timer} = AnyEvent->timer(
-        after => $self->{close_timeout},
+    DEBUG && warn "Start '${timer}_timer' ($timeout)\n";
+
+    $self->{"${timer}_timer"} = AnyEvent->timer(
+        after => $timeout,
         cb    => sub {
-            DEBUG && warn "Timeout 'close_timeout'\n";
+            DEBUG && warn "Timeout '${timer}_timeout'\n";
 
-            $self->close;
+            $self->{"on_${timer}_timeout"}->($self);
         }
     );
+}
+
+sub _stop_timer {
+    my $self = shift;
+    my ($timer) = @_;
+
+    DEBUG && warn "Stop '${timer}_timer'\n";
+
+    delete $self->{"${timer}_timer"};
 }
 
 sub _build_message {
