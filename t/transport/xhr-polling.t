@@ -30,20 +30,23 @@ test_pocketio(
         my $session_id = http_get_session_id "http://$server:$port/socket.io/1/";
 
         my $cv = AnyEvent->condvar;
-        $cv->begin;
 
+        $cv->begin;
         http_get "http://$server:$port/socket.io/1/xhr-polling/$session_id", sub {
             my ($body, $hrd) = @_;
 
             is $body => '1::';
+
+            $cv->end;
         };
 
+        $cv->begin;
         http_post "http://$server:$port/socket.io/1/xhr-polling/$session_id", '2::', sub {
             my ($body, $hrd) = @_;
 
             is $body => '1';
 
-            $cv->send;
+            $cv->end;
         };
 
         $cv->wait;
