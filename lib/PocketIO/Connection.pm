@@ -185,6 +185,8 @@ sub parse_message {
     my $self = shift;
     my ($message) = @_;
 
+    DEBUG && warn "Received '" . substr($message, 0, 80) . "'\n";
+
     $message = PocketIO::Message->new->parse($message);
     return unless $message;
 
@@ -214,7 +216,7 @@ sub parse_message {
         # TODO
     }
     else {
-        die 'TODO';
+        # TODO
     }
 
     $self->_init_close_timer;
