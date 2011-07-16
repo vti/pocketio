@@ -11,6 +11,7 @@ use Plack::Util ();
 use Plack::Util::Accessor qw(handler class instance method);
 
 use PocketIO::Resource;
+use PocketIO::Pool;
 
 sub new {
     my $self = shift->SUPER::new(@_);
@@ -19,6 +20,8 @@ sub new {
 
     $self->{socketio} ||= {};
 
+    $self->{pool} = $self->_build_pool;
+
     return $self;
 }
 
@@ -26,10 +29,17 @@ sub call {
     my $self = shift;
     my ($env) = @_;
 
-    my $dispatcher = $self->_build_dispatcher(%{$self->{socketio}});
+    my $dispatcher =
+      $self->_build_dispatcher(%{$self->{socketio}}, pool => $self->{pool});
 
     return $dispatcher->dispatch($env, $self->handler)
       || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
+}
+
+sub _build_pool {
+    my $self = shift;
+
+    return PocketIO::Pool->new;
 }
 
 sub _build_dispatcher {

@@ -5,7 +5,6 @@ use warnings;
 
 use AnyEvent;
 
-use PocketIO::Pool;
 use PocketIO::Message;
 
 use constant DEBUG => $ENV{POCKETIO_CONNECTION_DEBUG};
@@ -264,7 +263,7 @@ sub emit_broadcast {
     my $self  = shift;
     my $event = shift;
 
-    foreach my $conn (PocketIO::Pool->connections) {
+    foreach my $conn ($self->{pool}->connections) {
         next if $conn->id eq $self->id;
         next unless $conn->is_connected;
 
@@ -283,7 +282,7 @@ sub emit_broadcast_to_all {
     my $self  = shift;
     my $event = shift;
 
-    foreach my $conn (PocketIO::Pool->connections) {
+    foreach my $conn ($self->{pool}->connections) {
         next unless $conn->is_connected;
 
         my $event = $self->_build_event_message($event, @_);
@@ -301,7 +300,7 @@ sub send_broadcast {
     my $self = shift;
     my ($message) = @_;
 
-    foreach my $conn (PocketIO::Pool->connections) {
+    foreach my $conn ($self->{pool}->connections) {
         next if $conn->id eq $self->id;
         next unless $conn->is_connected;
 

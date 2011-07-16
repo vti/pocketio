@@ -65,6 +65,7 @@ sub dispatch {
     my $transport = $self->_build_transport(
         $transport_id,
         env               => $env,
+        pool              => $self->{pool},
         conn              => $conn,
         heartbeat_timeout => $self->{heartbeat_timeout},
         close_timeout     => $self->{close_timeout}
@@ -79,7 +80,7 @@ sub _dispatch_handshake {
     my ($env, $cb) = @_;
 
     my $max_connections = $self->{max_connections};
-    my $cur_connections = PocketIO::Pool->connections;
+    my $cur_connections = $self->{pool}->connections;
 
     if ($cur_connections + 1 > $max_connections) {
         my $body = 'Service unavailable';
@@ -116,13 +117,13 @@ sub _dispatch_handshake {
 sub _build_connection {
     my $self = shift;
 
-    return PocketIO::Pool->add_connection(@_);
+    return $self->{pool}->add_connection(@_);
 }
 
 sub _find_connection {
     my $self = shift;
 
-    return PocketIO::Pool->find_connection(@_);
+    return $self->{pool}->find_connection(@_);
 }
 
 sub _build_transport {
