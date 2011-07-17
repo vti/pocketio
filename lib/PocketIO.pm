@@ -20,8 +20,6 @@ sub new {
 
     $self->{socketio} ||= {};
 
-    $self->{pool} = $self->_build_pool;
-
     return $self;
 }
 
@@ -29,23 +27,24 @@ sub call {
     my $self = shift;
     my ($env) = @_;
 
-    my $dispatcher =
-      $self->_build_dispatcher(%{$self->{socketio}}, pool => $self->{pool});
+    my $dispatcher = $self->_build_dispatcher(%{$self->{socketio}});
 
     return $dispatcher->dispatch($env, $self->handler)
       || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
 }
 
-sub _build_pool {
+sub pool {
     my $self = shift;
 
-    return PocketIO::Pool->new;
+    $self->{pool} ||= PocketIO::Pool->new;
+
+    return $self->{pool};
 }
 
 sub _build_dispatcher {
     my $self = shift;
 
-    return PocketIO::Resource->new(@_);
+    return PocketIO::Resource->new(pool => $self->pool, @_);
 }
 
 sub _get_handler {
