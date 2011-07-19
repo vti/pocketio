@@ -26,7 +26,7 @@ is_deeply $res->[1],
     'Content-Type'   => 'text/plain',
   ];
 like $res->[2]->[0],
-  qr/^\d+:15:25:websocket,flashsocket,htmlfile,jsonp-polling,xhr-polling$/;
+  qr/^\d+:15:25:websocket,flashsocket,htmlfile,xhr-polling,jsonp-polling$/;
 
 $pool = PocketIO::Pool->new;
 $res  = PocketIO::Resource->new(
@@ -36,7 +36,7 @@ $res  = PocketIO::Resource->new(
 )->dispatch({REQUEST_METHOD => 'POST', PATH_INFO => '/1/'}, $cb);
 is $res->[0], 200;
 like $res->[2]->[0],
-  qr/^\d+:15:20:websocket,flashsocket,htmlfile,jsonp-polling,xhr-polling$/;
+  qr/^\d+:15:20:websocket,flashsocket,htmlfile,xhr-polling,jsonp-polling$/;
 
 $pool = PocketIO::Pool->new;
 $d = PocketIO::Resource->new(max_connections => 1, pool => $pool);
