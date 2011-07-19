@@ -32,7 +32,7 @@ sub new {
     $self->{close_timeout}     ||= 25;
     $self->{max_connections}   ||= 100;
 
-    $self->{transports} ||= [qw/websocket flashsocket htmlfile jsonp-polling xhr-polling/];
+    $self->{transports} ||= [qw/websocket flashsocket htmlfile xhr-polling jsonp-polling/];
 
     return $self;
 }
