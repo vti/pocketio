@@ -114,4 +114,12 @@ PocketIO::Polling - Basic class for polling transports
 
 =head1 DESCRIPTION
 
+Basic class for polling transports.
+
+=head1 METHODS
+
+=head2 name
+
+=head2 dispatch
+
 =cut

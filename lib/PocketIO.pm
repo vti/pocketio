@@ -68,7 +68,7 @@ __END__
 
 =head1 NAME
 
-PocketIO - Socket.IO middleware
+PocketIO - Socket.IO Plack application
 
 =head1 SYNOPSIS
 
@@ -79,8 +79,8 @@ PocketIO - Socket.IO middleware
             handler => sub {
                 my $self = shift;
 
-                $self->on_message(
-                    sub {
+                $self->on(
+                    'message' => sub {
                         my $self = shift;
                         my ($message) = @_;
 
@@ -88,7 +88,7 @@ PocketIO - Socket.IO middleware
                     }
                 );
 
-                $self->send_message({buffer => []});
+                $self->send({buffer => []});
             }
         );
 
@@ -106,28 +106,99 @@ PocketIO - Socket.IO middleware
 
 =head1 DESCRIPTION
 
-L<PocketIO> is a server implementation of SocketIO in Perl.
+L<PocketIO> is a server implementation of SocketIO in Perl, you still need
+C<socket.io> javascript library on the client.
 
-=head2 SocketIO
+L<PocketIO> aims to have API as close as possible to the Node.js implementation
+and sometimes it might look not very perlish.
 
-More information about SocketIO you can find on the website L<http://socket.io/>, or
-on the GitHub L<https://github.com/LearnBoost/Socket.IO>.
+=head2 How to use
 
-=head2 Transports
+First you mount L<PocketIO> as a normal L<Plack> application. It is recommended
+to mount it to the C</socket.io> path since that will not require any changes on
+the client side.
 
-All the transports are supported.
+When the client is connected your handler is called with a L<PocketIO::Socket>
+object as a first parameter.
 
-    WebSocket
-    Adobe(R) Flash(R) Socket
-    AJAX long polling
-    AJAX multipart streaming
-    Forever Iframe
-    JSONP Polling
+=head2 Sending and receiving messages
 
-=head2 TLS/SSL
+A simple echo handler can look like this:
 
-For TLS/SSL a secure proxy is needed. C<stunnel> or L<App::TLSMe> is
-recommended.
+    sub {
+        my $self = shift;
+
+        $self->on('message' => sub {
+            my $self = shift;
+            my ($message) = @_;
+
+            $self->send($message);
+        });
+    }
+
+=head2 Sending and receiving events
+
+Events are special messages that behave like rpc calls.
+
+    sub {
+        my $self = shift;
+
+        $self->on('username' => sub {
+            my $self = shift;
+            my ($nick) = @_;
+
+            ...
+        });
+
+        $self->emit('username', 'vti');
+    }
+
+=head2 Broadcasting and sending messages/events to everybody
+
+Broadcasting is sending messages to everybody except you:
+
+    $self->broadcast->send('foo');
+    $self->broadcast->emit('foo');
+
+Method C<sockets> represents all connected clients:
+
+    $self->sockets->send('foo');
+    $self->sockets->emit('foo');
+
+=head2 Acknowlegements
+
+Sometimes you want to know when the client received a message or event. In order
+to achieve this just pass a callback as the last parameter:
+
+    $self->send('foo', sub {'client got message'});
+    $self->emit('foo', sub {'client got event'});
+
+=head2 Storing data in the socket object
+
+Often it is required to store some data in the client object. Instead of using
+global variables there are two handy methods:
+
+    sub {
+        my $self = shift;
+
+        $self->set(foo => 'bar', sub { 'ready' });
+        $self->get('foo' => sub {
+            my $self = shift;
+            my ($err, $foo) = @_;
+        });
+    }
+
+=head2 Namespacing
+
+Not implemented yet.
+
+=head2 Volatile messages
+
+Not implemented yet.
+
+=head2 Rooms
+
+Not implemented yet.
 
 =head1 CONFIGURATIONS
 
@@ -139,13 +210,13 @@ recommended.
         handler => sub {
             my $socket = shift;
 
-            $socket->on_message(
-                sub {
+            $socket->on(
+                'message' => sub {
                     my $socket = shift;
                 }
             );
 
-            $socket->send_message('hello');
+            $socket->send('hello');
         }
     );
 
@@ -175,6 +246,34 @@ a passed C<instance> and runs C<run> method expecting it to return an anonymous
 subroutine.
 
 =back
+
+=head1 TLS/SSL
+
+For TLS/SSL a secure proxy is needed. C<stunnel> or L<App::TLSMe> are
+recommended.
+
+=head1 METHODS
+
+=over
+
+=item new
+
+Create a new L<PocketIO> instance.
+
+=item pool
+
+Holds L<PocketIO::Pool> object by default.
+
+=item call
+
+A usual L<Plack::Component> call method.
+
+=back
+
+=head1 SEE ALSO
+
+More information about SocketIO you can find on the website L<http://socket.io/>, or
+on the GitHub L<https://github.com/LearnBoost/Socket.IO>.
 
 =head1 DEVELOPMENT
 

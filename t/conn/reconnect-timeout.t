@@ -14,9 +14,6 @@ my $failed = 0;
 my $conn   = PocketIO::Connection->new(
     reconnect_timeout   => 0.1,
     on_reconnect_failed => sub {
-        shift->disconnected;
-    },
-    on_disconnect => sub {
         $failed = 1;
 
         $cv->send;

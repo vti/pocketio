@@ -142,6 +142,8 @@ L<PocketIO::Base> is a base class for the transports.
 
 =head2 C<req>
 
+=head2 C<conn>
+
 =head2 C<add_connection>
 
 =head2 C<remove_connection>

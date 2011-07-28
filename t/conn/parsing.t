@@ -11,7 +11,7 @@ my $conn = PocketIO::Connection->new;
 ok $conn;
 
 my $output = '';
-$conn->on('message' => sub { $output = $_[1] });
+$conn->socket->on('message' => sub { $output = $_[1] });
 
 $conn->parse_message('3:1::1234');
 is $output => '1234';
@@ -25,6 +25,7 @@ is_deeply $output => {foo => 'bar'};
 $conn->parse_message('4:1::{"foo":"' . encode_utf8('привет') . '"}');
 is_deeply $output => {foo => 'привет'};
 
+# FIXME private methods testing? are you nuts?!!!
 is $conn->_build_message('foo') => '3:::foo';
 is $conn->_build_message({foo => 'bar'}) => '4:::{"foo":"bar"}';
 

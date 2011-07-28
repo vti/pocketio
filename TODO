@@ -1,2 +1,3 @@
 - forced disconnect
 - fix w/r handle timeouts
+- send with ack

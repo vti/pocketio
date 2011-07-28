@@ -149,11 +149,13 @@ L<AnyEvent::Handle>.
 
 =head2 C<heartbeat_timeout>
 
-=head2 C<on_eof>
-
 =head2 C<on_heartbeat>
 
 =head2 C<on_read>
+
+=head2 C<on_eof>
+
+=head2 C<on_error>
 
 =head2 C<write>
 

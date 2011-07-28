@@ -4,8 +4,12 @@ use strict;
 use warnings;
 
 use AnyEvent;
+use Scalar::Util qw(blessed);
 
 use PocketIO::Message;
+use PocketIO::Socket;
+use PocketIO::Sockets;
+use PocketIO::Broadcast;
 
 use constant DEBUG => $ENV{POCKETIO_CONNECTION_DEBUG};
 
@@ -27,13 +31,16 @@ sub new {
     $self->{messages} = [];
 
     $self->{on_connect_failed}   ||= sub { };
-    $self->{on_connect}          ||= sub { };
     $self->{on_reconnect}        ||= sub { };
     $self->{on_reconnect_failed} ||= sub { };
     $self->{on_message}          ||= sub { };
     $self->{on_disconnect}       ||= sub { };
     $self->{on_error}            ||= sub { };
     $self->{on_close}            ||= sub { };
+
+    $self->{socket} ||= $self->_build_socket;
+    my $on_connect = delete $self->{on_connect} || sub {};
+    $self->{on_connect} = sub { $on_connect->($self->{socket}, @_) };
 
     DEBUG && $self->_debug('Connection created');
 
@@ -42,7 +49,11 @@ sub new {
     return $self;
 }
 
-sub type { shift->{type} }
+sub socket { $_[0]->{socket} }
+
+sub pool { $_[0]->{pool} }
+
+sub type { $_[0]->{type} }
 
 sub is_connected { $_[0]->{is_connected} }
 
@@ -76,7 +87,7 @@ sub connected {
     $self->emit('connect');
 
     my $message = PocketIO::Message->new(type => 'connect')->to_bytes;
-    $self->_write($message);
+    $self->write($message);
 
     $self->_start_timer('close');
 
@@ -114,7 +125,7 @@ sub disconnected {
     $self->{disconnect_timer} = AnyEvent->timer(
         after => 0,
         cb    => sub {
-            $self->emit('disconnect');
+            $self->{socket}->emit('disconnect');
         }
     );
 
@@ -171,71 +182,6 @@ sub emit {
     return $self;
 }
 
-sub parse_message {
-    my $self = shift;
-    my ($message) = @_;
-
-    DEBUG && $self->_debug("Received '" . substr($message, 0, 80) . "'");
-
-    $message = PocketIO::Message->new->parse($message);
-    return unless $message;
-
-    $self->_stop_timer('close');
-
-    if ($message->is_message) {
-        $self->emit('message', $message->data);
-    }
-    elsif ($message->type eq 'event') {
-        my $name = $message->data->{name};
-        my $args = $message->data->{args};
-
-        my $id = $message->id;
-
-        $self->emit($name, @$args, sub {
-            my $message = PocketIO::Message->new(
-                type       => 'ack',
-                message_id => $id,
-                args       => [@_]
-            )->to_bytes;
-
-            $self->_write($message);
-        });
-    }
-    elsif ($message->type eq 'heartbeat') {
-        # TODO
-    }
-    else {
-        # TODO
-    }
-
-    $self->_start_timer('close');
-
-    return $self;
-}
-
-sub send_heartbeat {
-    my $self = shift;
-
-    $self->{heartbeat}++;
-
-    DEBUG && $self->_debug('Send heartbeat');
-
-    my $message = PocketIO::Message->new(type => 'heartbeat')->to_bytes;
-
-    return $self->_write($message);
-}
-
-sub send_message {
-    my $self = shift;
-    my ($message) = @_;
-
-    $message = $self->_build_message($message);
-
-    $self->_write($message);
-
-    return $self;
-}
-
 sub stage_message {
     my $self = shift;
     my ($message) = @_;
@@ -259,58 +205,94 @@ sub staged_message {
     return shift @{$self->{messages}};
 }
 
-sub emit_broadcast {
-    my $self  = shift;
-    my $event = shift;
+sub send_heartbeat {
+    my $self = shift;
 
-    foreach my $conn ($self->{pool}->connections) {
-        next if $conn->id eq $self->id;
-        next unless $conn->is_connected;
+    $self->{heartbeat}++;
 
-        my $event = $self->_build_event_message($event, @_);
+    DEBUG && $self->_debug('Send heartbeat');
 
-        # Broadcasting counts as a heartbeat
-        $conn->_restart_timer('close');
+    my $message = PocketIO::Message->new(type => 'heartbeat')->to_bytes;
 
-        $conn->_write($event);
-    }
-
-    return $self;
+    return $self->write($message);
 }
 
-sub emit_broadcast_to_all {
-    my $self  = shift;
-    my $event = shift;
-
-    foreach my $conn ($self->{pool}->connections) {
-        next unless $conn->is_connected;
-
-        my $event = $self->_build_event_message($event, @_);
-
-        # Broadcasting counts as a heartbeat
-        $conn->_restart_timer('close');
-
-        $conn->_write($event);
-    }
-
-    return $self;
-}
-
-sub send_broadcast {
+sub send {
     my $self = shift;
     my ($message) = @_;
 
-    foreach my $conn ($self->{pool}->connections) {
-        next if $conn->id eq $self->id;
-        next unless $conn->is_connected;
+    $message = $self->_build_message($message);
 
-        # Broadcasting counts as a heartbeat
-        $conn->_restart_timer('close');
-
-        $conn->send_message($message);
-    }
+    $self->write($message);
 
     return $self;
+}
+
+sub broadcast {
+    my $self  = shift;
+
+    return PocketIO::Broadcast->new(conn => $self, pool => $self->pool);
+}
+
+sub sockets {
+    my $self = shift;
+
+    return PocketIO::Sockets->new(pool => $self->pool);
+}
+
+sub parse_message {
+    my $self = shift;
+    my ($message) = @_;
+
+    DEBUG && $self->_debug("Received '" . substr($message, 0, 80) . "'");
+
+    $message = PocketIO::Message->new->parse($message);
+    return unless $message;
+
+    $self->_stop_timer('close');
+
+    if ($message->is_message) {
+        $self->{socket}->emit('message', $message->data);
+    }
+    elsif ($message->type eq 'event') {
+        my $name = $message->data->{name};
+        my $args = $message->data->{args};
+
+        my $id = $message->id;
+
+        $self->{socket}->emit($name, @$args, sub {
+            my $message = PocketIO::Message->new(
+                type       => 'ack',
+                message_id => $id,
+                args       => [@_]
+            )->to_bytes;
+
+            $self->write($message);
+        });
+    }
+    elsif ($message->type eq 'heartbeat') {
+        # TODO
+    }
+    else {
+        # TODO
+    }
+
+    $self->_start_timer('close');
+
+    return $self;
+}
+
+sub write {
+    my $self = shift;
+    my ($bytes) = @_;
+
+    if ($self->on('write')) {
+        DEBUG && $self->_debug("Writing '" . substr($bytes, 0, 50) . "'");
+        $self->emit('write', $bytes);
+    }
+    else {
+        $self->stage_message($bytes);
+    }
 }
 
 sub _start_timer {
@@ -355,29 +337,6 @@ sub _build_message {
     return PocketIO::Message->new(data => $message)->to_bytes;
 }
 
-sub _build_event_message {
-    my $self = shift;
-    my $event = shift;
-
-    return PocketIO::Message->new(
-        type => 'event',
-        data => {name => $event, args => [@_]}
-    )->to_bytes;
-}
-
-sub _write {
-    my $self = shift;
-    my ($bytes) = @_;
-
-    if ($self->on('write')) {
-        DEBUG && $self->_debug("Writing '" . substr($bytes, 0, 50) . "'");
-        $self->emit('write', $bytes);
-    }
-    else {
-        $self->stage_message($bytes);
-    }
-}
-
 sub _generate_id {
     my $self = shift;
 
@@ -397,6 +356,12 @@ sub _debug {
     warn time . ' (' . $self->id . '): ' . $message . "\n";
 }
 
+sub _build_socket {
+    my $self = shift;
+
+    return PocketIO::Socket->new(conn => $self);
+}
+
 1;
 __END__
 
@@ -410,41 +375,5 @@ L<PocketIO::Connection> is a connection class that
 incapsulates all the logic for bulding and parsing Socket.IO messages.
 
 =head1 METHODS
-
-=head2 C<new>
-
-=head2 C<id>
-
-=head2 C<type>
-
-=head2 C<disconnect>
-
-=head2 C<is_connected>
-
-=head2 C<on>
-
-=head2 C<on_disconnect>
-
-=head2 C<on_error>
-
-=head2 C<on_message>
-
-=head2 C<send_message>
-
-=head2 C<send_broadcast>
-
-=head1 INTERNAL METHODS
-
-=head2 C<connect>
-
-=head2 C<on_write>
-
-=head2 C<read>
-
-=head2 C<send_id_message>
-
-=head2 C<build_id_message>
-
-=head2 C<send_heartbeat>
 
 =cut

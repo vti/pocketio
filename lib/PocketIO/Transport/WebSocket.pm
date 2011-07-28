@@ -98,6 +98,12 @@ PocketIO::WebSocket - WebSocket transport
 
 L<PocketIO::WebSocket> is a WebSocket transport implementation.
 
+=head1 METHODS
+
+=head2 name
+
+=head2 dispatch
+
 =head1 SEE ALSO
 
 L<Protocol::WebSocket>

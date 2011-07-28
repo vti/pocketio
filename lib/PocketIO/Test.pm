@@ -45,3 +45,20 @@ sub http_get_session_id {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+PocketIO::Test - Testing PocketIO
+
+=head1 DESCRIPTION
+
+L<PocketIO::Test> is a L<PocketIO> testing simplified.
+
+=head1 FUNCTIONS
+
+=head2 C<test_pocketio>
+
+=head2 C<http_get_session_id>
+
+=cut

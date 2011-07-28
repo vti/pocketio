@@ -105,7 +105,16 @@ PocketIO::Htmlfile - Htmlfile transport
 
 =head1 DESCRIPTION
 
-L<PocketIO::Htmlfile> is a C<htmlfile> transport
-implementation.
+L<PocketIO::Htmlfile> is a C<htmlfile> transport implementation.
+
+=head1 METHODS
+
+=over
+
+=item name
+
+=item dispatch
+
+=back
 
 =cut

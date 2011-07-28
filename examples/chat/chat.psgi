@@ -38,7 +38,11 @@ builder {
                     my $self = shift;
                     my ($message) = @_;
 
-                    $self->emit_broadcast('user message', $self->{nick}, $message);
+                    $self->get('nick' => sub {
+                        my ($self, $err, $nick) = @_;
+
+                        $self->broadcast->emit('user message', $nick, $message);
+                    });
                 }
             );
 
@@ -53,10 +57,12 @@ builder {
                     else {
                         $cb->(JSON::false);
 
-                        $nicknames->{$nick} = $self->{nick} = $nick;
-                        $self->emit_broadcast('announcement',
-                            $nick . ' connected');
-                        $self->emit_broadcast_to_all('nicknames', $nicknames);
+                        $self->set(nick => $nick);
+
+                        $nicknames->{$nick} = $nick;
+
+                        $self->broadcast->emit('announcement', $nick . ' connected');
+                        $self->sockets->emit('nicknames', $nicknames);
                     }
                 }
             );
@@ -65,12 +71,17 @@ builder {
                 'disconnect' => sub {
                     my $self = shift;
 
-                    return unless $self->{nick};
+                    $self->get(
+                        'nick' => sub {
+                            my ($self, $err, $nick) = @_;
 
-                    delete $nicknames->{$self->{nick}};
-                    $self->emit_broadcast('announcement',
-                        $self->{nick} . ' disconnected');
-                    $self->emit_broadcast('nicknames', $nicknames);
+                            delete $nicknames->{$nick};
+
+                            $self->broadcast->emit('announcement',
+                                $nick . ' disconnected');
+                            $self->broadcast->emit('nicknames', $nicknames);
+                        }
+                    );
                 }
             );
         }

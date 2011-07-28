@@ -112,3 +112,32 @@ sub to_bytes {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+PocketIO::Message - Socket.IO message parsing and building
+
+=head1 DESCRIPTION
+
+L<PocketIO::Message> parsers and builds Socket.IO messages.
+
+=head1 METHODS
+
+=head2 C<new>
+
+=head2 C<parse>
+
+=head2 C<type>
+
+=head2 C<is_message>
+
+=head2 C<id>
+
+=head2 C<data>
+
+=head2 C<endpoint>
+
+=head2 C<to_bytes>
+
+=cut

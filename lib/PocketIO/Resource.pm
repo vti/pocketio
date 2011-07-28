@@ -152,6 +152,8 @@ L<PocketIO::Resource> is a transport dispatcher.
 
 =head1 METHODS
 
+=head2 C<new>
+
 =head2 C<dispatch>
 
 =cut

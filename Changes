@@ -1,12 +1,12 @@
 Revision history for perl module PocketIO
 
-0.009004
+0.009004 2011-05-12
 
  - Renamed to PocketIO
  - Implemented as a Plack app instead of middleware
  - Fixed UTF issues
 
-0.009003
+0.009003 2011-04-09
 
  - It is possible to pass class name or instance and method instead of inline
    handler

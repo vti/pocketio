@@ -87,6 +87,8 @@ L<PocketIO::Pool> is a connection pool.
 
 =head1 METHODS
 
+=head2 C<new>
+
 =head2 C<find_connection>
 
 =head2 C<add_connection>
