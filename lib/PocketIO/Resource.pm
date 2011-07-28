@@ -80,7 +80,7 @@ sub _dispatch_handshake {
     my ($env, $cb) = @_;
 
     my $max_connections = $self->{max_connections};
-    my $cur_connections = $self->{pool}->connections;
+    my $cur_connections = $self->{pool}->size;
 
     if ($cur_connections + 1 > $max_connections) {
         my $body = 'Service unavailable';

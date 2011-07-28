@@ -1,18 +1,19 @@
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 use_ok('PocketIO::Pool');
 
 my $pool = PocketIO::Pool->new;
 
-is_deeply [$pool->connections], [];
+is $pool->size, 0;
 
 ok! $pool->find_connection(123);
 
 my $conn = $pool->add_connection();
 ok $conn;
+is $pool->size, 1;
 
 is $conn->id, $pool->find_connection($conn->id)->id;
 

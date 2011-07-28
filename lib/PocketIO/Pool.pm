@@ -29,12 +29,6 @@ sub find_connection {
     return $self->{connections}->{$id};
 }
 
-sub connections {
-    my $self = shift;
-
-    return values %{$self->{connections}};
-}
-
 sub add_connection {
     my $self = shift;
 
@@ -55,6 +49,44 @@ sub remove_connection {
     delete $self->{connections}->{$id};
 
     DEBUG && warn "Removed connection '" . $id . "'\n";
+}
+
+sub send {
+    my $self = shift;
+
+    foreach my $conn ($self->_connections) {
+        next unless $conn->is_connected;
+
+        $conn->socket->send(@_);
+    }
+
+    return $self;
+}
+
+sub broadcast {
+    my $self    = shift;
+    my $invoker = shift;
+
+    foreach my $conn ($self->_connections) {
+        next unless $conn->is_connected;
+        next if $conn->id eq $invoker->id;
+
+        $conn->socket->send(@_);
+    }
+
+    return $self;
+}
+
+sub size {
+    my $self = shift;
+
+    return scalar $self->_connections;
+}
+
+sub _connections {
+    my $self = shift;
+
+    return values %{$self->{connections}};
 }
 
 sub _build_connection {

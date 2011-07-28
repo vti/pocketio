@@ -86,7 +86,7 @@ sub connected {
 
     $self->emit('connect');
 
-    my $message = PocketIO::Message->new(type => 'connect')->to_bytes;
+    my $message = PocketIO::Message->new(type => 'connect');
     $self->write($message);
 
     $self->_start_timer('close');
@@ -212,7 +212,7 @@ sub send_heartbeat {
 
     DEBUG && $self->_debug('Send heartbeat');
 
-    my $message = PocketIO::Message->new(type => 'heartbeat')->to_bytes;
+    my $message = PocketIO::Message->new(type => 'heartbeat');
 
     return $self->write($message);
 }
@@ -265,7 +265,7 @@ sub parse_message {
                 type       => 'ack',
                 message_id => $id,
                 args       => [@_]
-            )->to_bytes;
+            );
 
             $self->write($message);
         });
@@ -285,6 +285,10 @@ sub parse_message {
 sub write {
     my $self = shift;
     my ($bytes) = @_;
+
+    $bytes = $bytes->to_bytes if blessed $bytes;
+
+    $self->_restart_timer('close');
 
     if ($self->on('write')) {
         DEBUG && $self->_debug("Writing '" . substr($bytes, 0, 50) . "'");
@@ -334,7 +338,9 @@ sub _build_message {
     my $self = shift;
     my ($message) = @_;
 
-    return PocketIO::Message->new(data => $message)->to_bytes;
+    return $message if blessed $message;
+
+    return PocketIO::Message->new(data => $message);
 }
 
 sub _generate_id {

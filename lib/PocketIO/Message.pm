@@ -6,6 +6,8 @@ use warnings;
 use JSON ();
 use Encode ();
 
+use overload '""' => sub { $_[0]->to_bytes }, fallback => 1;
+
 our %TYPES = (
     'disconnect'   => 0,
     'connect'      => 1,

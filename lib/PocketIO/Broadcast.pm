@@ -5,12 +5,23 @@ use warnings;
 
 use base 'PocketIO::Sockets';
 
-sub _connections {
+sub send {
     my $self = shift;
 
-    my $id = $self->{conn}->id;
+    $self->{pool}->broadcast(@_);
 
-    return grep { $_->id ne $id } $self->{pool}->connections;
+    return $self;
+}
+
+sub emit {
+    my $self = shift;
+    my $name = shift;
+
+    my $event = $self->_build_event_message($name, @_);
+
+    $self->{pool}->broadcast($self->{conn}, $event);
+
+    return $self;
 }
 
 1;
