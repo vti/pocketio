@@ -72,6 +72,8 @@ sub dispatch {
     );
     return unless $transport;
 
+    $conn->type($transport->name);
+
     return $transport->dispatch;
 }
 

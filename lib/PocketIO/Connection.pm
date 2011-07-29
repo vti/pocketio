@@ -53,7 +53,7 @@ sub socket { $_[0]->{socket} }
 
 sub pool { $_[0]->{pool} }
 
-sub type { $_[0]->{type} }
+sub type { @_ > 1 ? $_[0]->{type} = $_[1] : $_[0]->{type} }
 
 sub is_connected { $_[0]->{is_connected} }
 
