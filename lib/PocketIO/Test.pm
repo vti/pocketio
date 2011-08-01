@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use AnyEvent;
-use AnyEvent::HTTP;
+use AnyEvent::Socket;
 use Test::TCP;
 use Plack::Loader;
 
@@ -17,27 +17,52 @@ sub test_pocketio {
     test_tcp(
         client => $client,
         server => sub {
-            my $port = shift;
-            my $server =
-              Plack::Loader->auto(port => $port, host => ('127.0.0.1'));
+            my $port   = shift;
+            my $server = Plack::Loader->load(
+                'Fliggy',
+                port => $port,
+                host => ('127.0.0.1')
+            );
             $server->run($app);
         },
     );
 }
 
 sub http_get_session_id {
-    my $url = shift;
+    my $server = shift;
+    my $port   = shift;
 
     my $cv = AnyEvent->condvar;
 
     my $session_id;
 
     $cv->begin;
-    http_get $url, sub {
-        my ($body, $hdr) = @_;
+    tcp_connect $server, $port, sub {
+        my ($fh) = @_ or return $cv->send;
 
-        ($session_id) = $body =~ m/^(\d+):/;
-        $cv->end;
+        syswrite $fh, <<"EOF";
+GET /socket.io/1/ HTTP/1.1
+Host: $server:$port
+
+EOF
+
+        my $read_watcher;
+        $read_watcher = AnyEvent->io(
+            fh   => $fh,
+            poll => "r",
+            cb   => sub {
+                my $len = sysread $fh, my $chunk, 1024, 0;
+
+                if (($session_id) = $chunk =~ m/\r?\n(\d+):/) {
+                    $cv->end;
+                }
+
+                if ($len <= 0) {
+                    undef $read_watcher;
+                    $cv->end;
+                }
+            }
+        );
     };
     $cv->wait;
 

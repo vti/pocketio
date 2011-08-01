@@ -22,11 +22,9 @@ WriteMakefile(
         : ( META_MERGE => {
                 requires  => {perl => '5.008007'},
                 resources => {
-                    license => 'http://dev.perl.org/licenses/',
-                    repository =>
-                      'http://github.com/vti/pocketio',
-                    bugtracker =>
-                      'http://github.com/vti/pocketio/issues'
+                    license    => 'http://dev.perl.org/licenses/',
+                    repository => 'http://github.com/vti/pocketio',
+                    bugtracker => 'http://github.com/vti/pocketio/issues'
                 },
                 no_index => {directory => [qw/t/]}
             },
@@ -39,12 +37,12 @@ WriteMakefile(
 
     PREREQ_PM => {
         'AnyEvent'            => 0,
-        'AnyEvent::HTTP'      => 0,
+        'Fliggy'              => 0,
         'JSON'                => 0,
         'Plack'               => 0,
         'Protocol::WebSocket' => 0.009002,
         'Scalar::Util'        => 0,
-        'Try::Tiny'           => 0
+        'Try::Tiny'           => 0,
     },
     test => {TESTS => 't/*.t t/*/*.t'}
 );

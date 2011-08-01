@@ -7,7 +7,6 @@ use PocketIO::Test;
 use AnyEvent;
 use AnyEvent::Impl::Perl;
 use AnyEvent::Socket;
-use AnyEvent::HTTP;
 use Plack::Builder;
 use Protocol::WebSocket::Frame;
 use Protocol::WebSocket::Handshake::Client;
@@ -30,7 +29,7 @@ test_pocketio(
     $app => sub {
         my $port = shift;
 
-        my $session_id = http_get_session_id "http://$server:$port/socket.io/1/";
+        my $session_id = http_get_session_id $server, $port;
 
         my $cv = AnyEvent->condvar;
 
@@ -58,6 +57,7 @@ test_pocketio(
 
                         if (my $message = $frame->next) {
                             is $message, '1::';
+                            undef $read_watcher;
                             $cv->end;
                         }
                     }

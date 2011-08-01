@@ -28,7 +28,7 @@ test_pocketio(
     $app => sub {
         my $port = shift;
 
-        my $session_id = http_get_session_id "http://$server:$port/socket.io/1/";
+        my $session_id = http_get_session_id $server, $port;
 
         my $cv = AnyEvent->condvar;
         $cv->begin;
@@ -59,6 +59,7 @@ test_pocketio(
                         =~ m!\Q<html><body><script>var _ = function (msg) { parent.s._(msg, document); };</script>\E!
                         && $buffer =~ m!\Q<script>_("1::");</script>\E!)
                     {
+                        undef $read_watcher;
                         $cv->end;
                     }
 
@@ -68,15 +69,37 @@ test_pocketio(
                     }
                 }
             );
-        };
 
-        $cv->begin;
-        http_post "http://$server:$port/socket.io/1/htmlfile/$session_id", '2::', sub {
-            my ($body, $hrd) = @_;
+            $cv->begin;
+            tcp_connect $server, $port, sub {
+                my ($fh) = @_ or return $cv->send;
 
-            is $body => '1';
+                syswrite $fh,
+                  join "\x0d\x0a" =>
+                  "POST /socket.io/1/htmlfile/$session_id HTTP/1.0",
+                  "Host: $server:$port",
+                  '',
+                  '2::';
 
-            $cv->end;
+                my $read_watcher;
+                $read_watcher = AnyEvent->io(
+                    fh   => $fh,
+                    poll => "r",
+                    cb   => sub {
+                        my $len = sysread $fh, my $chunk, 1024, 0;
+
+                        if ($chunk =~ m/1$/) {
+                            ok(1);
+                            $cv->end;
+                        }
+
+                        if ($len <= 0) {
+                            undef $read_watcher;
+                            $cv->end;
+                        }
+                    }
+                );
+            };
         };
 
         $cv->wait;

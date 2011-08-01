@@ -6,7 +6,7 @@ use PocketIO::Test;
 
 use AnyEvent;
 use AnyEvent::Impl::Perl;
-use AnyEvent::HTTP;
+use AnyEvent::Socket;
 use Plack::Builder;
 
 use PocketIO;
@@ -27,26 +27,70 @@ test_pocketio(
     $app => sub {
         my $port = shift;
 
-        my $session_id = http_get_session_id "http://$server:$port/socket.io/1/";
+        my $session_id = http_get_session_id $server, $port;
 
         my $cv = AnyEvent->condvar;
-
         $cv->begin;
-        http_get "http://$server:$port/socket.io/1/xhr-polling/$session_id", sub {
-            my ($body, $hrd) = @_;
+        tcp_connect $server, $port, sub {
+            my ($fh) = @_ or return $cv->send;
 
-            is $body => '1::';
+            syswrite $fh, <<"EOF";
+GET /socket.io/1/xhr-polling/$session_id HTTP/1.1
+Host: $server:$port
 
-            $cv->end;
+EOF
+
+            my $read_watcher;
+            $read_watcher = AnyEvent->io(
+                fh   => $fh,
+                poll => "r",
+                cb   => sub {
+                    my $len = sysread $fh, my $chunk, 1024, 0;
+
+                    if ($chunk =~ m/1::/) {
+                        ok(1);
+                        undef $read_watcher;
+                        $cv->end;
+                    }
+
+                    if ($len <= 0) {
+                        undef $read_watcher;
+                        $cv->end;
+                    }
+                }
+            );
         };
 
         $cv->begin;
-        http_post "http://$server:$port/socket.io/1/xhr-polling/$session_id", '2::', sub {
-            my ($body, $hrd) = @_;
+        tcp_connect $server, $port, sub {
+            my ($fh) = @_ or return $cv->send;
 
-            is $body => '1';
+            syswrite $fh, <<"EOF";
+POST /socket.io/1/xhr-polling/$session_id HTTP/1.1
+Host: $server:$port
 
-            $cv->end;
+2::
+EOF
+
+            my $read_watcher;
+            $read_watcher = AnyEvent->io(
+                fh   => $fh,
+                poll => "r",
+                cb   => sub {
+                    my $len = sysread $fh, my $chunk, 1024, 0;
+
+                    if ($chunk =~ m/1$/) {
+                        ok(1);
+                        undef $read_watcher;
+                        $cv->end;
+                    }
+
+                    if ($len <= 0) {
+                        undef $read_watcher;
+                        $cv->end;
+                    }
+                }
+            );
         };
 
         $cv->wait;
