@@ -22,10 +22,12 @@ sub dispatch {
       Protocol::WebSocket::Handshake::Server->new_from_psgi($self->req->env);
     return unless $hs->parse($fh);
 
+    my $version = $hs->version;
+
     return unless $hs->is_done;
 
     my $handle = $self->_build_handle(fh => $fh);
-    my $frame = Protocol::WebSocket::Frame->new;
+    my $frame = Protocol::WebSocket::Frame->new(version => $version);
 
     return sub {
         my $respond = shift;
@@ -68,7 +70,10 @@ sub dispatch {
 
                 $conn->on(
                     write => sub {
-                        my $bytes = $self->_build_frame($_[1]);
+                        my $bytes = $self->_build_frame(
+                            buffer  => $_[1],
+                            version => $version
+                        );
 
                         $handle->write($bytes);
                     }
@@ -82,9 +87,8 @@ sub dispatch {
 
 sub _build_frame {
     my $self = shift;
-    my ($bytes) = @_;
 
-    return Protocol::WebSocket::Frame->new($bytes)->to_bytes;
+    return Protocol::WebSocket::Frame->new(@_)->to_bytes;
 }
 
 1;
