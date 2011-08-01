@@ -288,8 +288,6 @@ sub write {
 
     $bytes = $bytes->to_bytes if blessed $bytes;
 
-    $self->_restart_timer('close');
-
     if ($self->on('write')) {
         DEBUG && $self->_debug("Writing '" . substr($bytes, 0, 50) . "'");
         $self->emit('write', $bytes);
