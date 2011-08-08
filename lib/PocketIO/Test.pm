@@ -46,6 +46,8 @@ Host: $server:$port
 
 EOF
 
+        my $buffer = '';
+
         my $read_watcher;
         $read_watcher = AnyEvent->io(
             fh   => $fh,
@@ -53,17 +55,18 @@ EOF
             cb   => sub {
                 my $len = sysread $fh, my $chunk, 1024, 0;
 
-                if (($session_id) = $chunk =~ m/\r?\n(\d+):/) {
-                    $cv->end;
-                }
+                $buffer .= $chunk;
 
                 if ($len <= 0) {
+                    ($session_id) = $buffer =~ m/\r?\n(\d+):/;
+
                     undef $read_watcher;
-                    $cv->end;
+                    return $cv->end;
                 }
             }
         );
     };
+
     $cv->wait;
 
     return $session_id;
