@@ -1,48 +1,35 @@
 #!/usr/bin/env perl
 
-use 5.008007;
-
 use strict;
 use warnings;
 
-use ExtUtils::MakeMaker;
+use inc::Module::Install;
 
-my ($mm) = $ExtUtils::MakeMaker::VERSION =~ /^([^_]+)/;
+name 'PocketIO';
 
-WriteMakefile(
-    NAME         => 'PocketIO',
-    VERSION_FROM => 'lib/PocketIO.pm',
-    ABSTRACT     => 'Socket.IO Plack app',
-    AUTHOR       => 'Viacheslav Tykhanovskyi <vti@cpan.org>',
+version_from 'lib/PocketIO.pm';
+author 'Viacheslav Tykhanovskyi <vti@cpan.org>';
+abstract 'Socket.IO Plack app';
+license 'artistic_2';
+perl_version '5.008007';
 
-    ($mm < 6.3002 ? () : ('LICENSE' => 'artistic_2')),
+requires 'AnyEvent'            => '0';
+requires 'Fliggy'              => '0';
+requires 'JSON'                => '0';
+requires 'Plack'               => '0';
+requires 'Protocol::WebSocket' => '0.009003';
+requires 'Scalar::Util'        => '0';
+requires 'Try::Tiny'           => '0';
 
-    (   $mm < 6.46
-        ? ()
-        : ( META_MERGE => {
-                requires  => {perl => '5.008007'},
-                resources => {
-                    license    => 'http://dev.perl.org/licenses/',
-                    repository => 'http://github.com/vti/pocketio',
-                    bugtracker => 'http://github.com/vti/pocketio/issues'
-                },
-                no_index => {directory => [qw/t/]}
-            },
-            META_ADD => {
-                build_requires     => {},
-                configure_requires => {}
-            },
-        )
-    ),
+tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 
-    PREREQ_PM => {
-        'AnyEvent'            => 0,
-        'Fliggy'              => 0,
-        'JSON'                => 0,
-        'Plack'               => 0,
-        'Protocol::WebSocket' => 0.009003,
-        'Scalar::Util'        => 0,
-        'Try::Tiny'           => 0,
-    },
-    test => {TESTS => 't/*.t t/*/*.t'}
-);
+no_index directory => 't';
+
+resources
+  bugtracker => 'http://github.com/vti/pocketio/issues',
+  repository => 'http://github.com/vti/pocketio/',
+  license    => 'http://dev.perl.org/licenses/';
+
+auto_install;
+
+WriteAll;
