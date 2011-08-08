@@ -40,7 +40,7 @@ WriteMakefile(
         'Fliggy'              => 0,
         'JSON'                => 0,
         'Plack'               => 0,
-        'Protocol::WebSocket' => 0.009002,
+        'Protocol::WebSocket' => 0.009003,
         'Scalar::Util'        => 0,
         'Try::Tiny'           => 0,
     },
