@@ -286,6 +286,8 @@ sub write {
     my $self = shift;
     my ($bytes) = @_;
 
+    $self->_restart_timer('close');
+
     $bytes = $bytes->to_bytes if blessed $bytes;
 
     if ($self->on('write')) {
