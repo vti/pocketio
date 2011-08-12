@@ -21,7 +21,8 @@ sub new {
     return $self;
 }
 
-sub id { $_[0]->{conn}->id }
+sub session_id {&id}
+sub id         { $_[0]->{conn}->id }
 
 sub set {
     my $self = shift;
