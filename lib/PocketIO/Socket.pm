@@ -21,6 +21,8 @@ sub new {
     return $self;
 }
 
+sub id { $_[0]->{conn}->id }
+
 sub set {
     my $self = shift;
     my ($key, $value, $cb) = @_;
