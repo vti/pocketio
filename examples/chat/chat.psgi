@@ -13,8 +13,8 @@ BEGIN {
 use PocketIO;
 
 use JSON;
-use Plack::Builder;
 use Plack::App::File;
+use Plack::Builder;
 use Plack::Middleware::Static;
 
 my $nicknames = {};
