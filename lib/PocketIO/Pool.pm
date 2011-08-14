@@ -31,6 +31,7 @@ sub find_connection {
 
 sub add_connection {
     my $self = shift;
+    my $cb   = pop @_;
 
     my $conn = $self->_build_connection(@_);
 
@@ -38,17 +39,20 @@ sub add_connection {
 
     DEBUG && warn "Added connection '" . $conn->id . "'\n";
 
-    return $conn;
+    return $cb->($conn);
 }
 
 sub remove_connection {
     my $self = shift;
+    my ($conn, $cb) = @_;
 
-    my $id = blessed $_[0] ? $_[0]->id : $_[0];
+    my $id = blessed $conn ? $conn->id : $conn;
 
     delete $self->{connections}->{$id};
 
     DEBUG && warn "Removed connection '" . $id . "'\n";
+
+    return $cb->() if $cb;
 }
 
 sub send {
@@ -75,12 +79,6 @@ sub broadcast {
     }
 
     return $self;
-}
-
-sub size {
-    my $self = shift;
-
-    return scalar $self->_connections;
 }
 
 sub _connections {

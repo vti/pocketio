@@ -81,45 +81,52 @@ sub _dispatch_handshake {
     my $self = shift;
     my ($env, $cb) = @_;
 
-    my $max_connections = $self->{max_connections};
-    my $cur_connections = $self->{pool}->size;
+    return sub {
+        my $respond = shift;
 
-    if ($cur_connections + 1 > $max_connections) {
-        my $body = 'Service unavailable';
-        return [503, ['Content-Length' => length $body], [$body]];
-    }
+        my $req = Plack::Request->new($env);
 
-    my $conn = $self->_build_connection(on_connect => $cb);
-
-    my $transports = join ',', @{$self->{transports}};
-
-    my $handshake = join ':', $conn->id, $self->{heartbeat_timeout},
-      $self->{close_timeout}, $transports;
-
-    my $req = Plack::Request->new($env);
-    my $res = $req->new_response(200);
-
-    # XDomain request
-    if (defined(my $jsonp = $req->param('jsonp'))) {
-        $res->content_type('application/javascript');
-        $handshake = qq{io.j[$jsonp]("$handshake");};
-    }
-    else {
-        $res->content_type('text/plain');
-    }
-
-    $res->headers->header('Connection' => 'keep-alive');
-    $res->headers->header('Content-Length' => length($handshake));
-
-    $res->body($handshake);
-
-    return $res->finalize;
+        return $self->_build_connection(
+            on_connect => $cb,
+            $self->_on_connection_created($req, $respond)
+        );
+    };
 }
 
 sub _build_connection {
     my $self = shift;
 
     return $self->{pool}->add_connection(@_);
+}
+
+sub _on_connection_created {
+    my $self = shift;
+    my ($req, $respond) = @_;
+
+    return sub {
+        my $conn = shift;
+
+        my $transports = join ',', @{$self->{transports}};
+
+        my $handshake = join ':', $conn->id, $self->{heartbeat_timeout},
+          $self->{close_timeout}, $transports;
+
+        my $headers = [];
+
+        # XDomain request
+        if (defined(my $jsonp = $req->param('jsonp'))) {
+            push @$headers, 'Content-Type' => 'application/javascript';
+            $handshake = qq{io.j[$jsonp]("$handshake");};
+        }
+        else {
+            push @$headers, 'Content-Type' => 'text/plain';
+        }
+
+        push @$headers, 'Connection'     => 'keep-alive';
+        push @$headers, 'Content-Length' => length($handshake);
+
+        $respond->([200, $headers, [$handshake]]);
+    };
 }
 
 sub _find_connection {
