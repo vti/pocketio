@@ -86,12 +86,10 @@ sub _dispatch_handshake {
     return sub {
         my $respond = shift;
 
-        my $req = Plack::Request->new($env);
-
         try {
             $self->_build_connection(
                 on_connect => $cb,
-                $self->_on_connection_created($req, $respond)
+                $self->_on_connection_created($env, $respond)
             );
         }
         catch {
@@ -99,11 +97,12 @@ sub _dispatch_handshake {
 
             my $body = 'Service unavailable';
             $respond->(
-                503,
-                [   'Content-Type'   => 'text/plain',
-                    'Content-Length' => length($body)
-                ],
-                [$body]
+                [   503,
+                    [   'Content-Type'   => 'text/plain',
+                        'Content-Length' => length($body)
+                    ],
+                    [$body]
+                ]
             );
         };
     };
@@ -117,7 +116,7 @@ sub _build_connection {
 
 sub _on_connection_created {
     my $self = shift;
-    my ($req, $respond) = @_;
+    my ($env, $respond) = @_;
 
     return sub {
         my $conn = shift;
@@ -128,6 +127,8 @@ sub _on_connection_created {
           $self->{close_timeout}, $transports;
 
         my $headers = [];
+
+        my $req = Plack::Request->new($env);
 
         # XDomain request
         if (defined(my $jsonp = $req->param('jsonp'))) {
