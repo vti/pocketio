@@ -29,6 +29,7 @@ sub _dispatch_stream {
     return unless $conn;
 
     my $handle = $self->_build_handle(fh => $self->env->{'psgix.io'});
+    return unless $handle;
 
     return sub {
         my $respond = shift;

@@ -5,6 +5,7 @@ use warnings;
 
 use AnyEvent;
 use Scalar::Util qw(blessed);
+use Try::Tiny;
 
 use PocketIO::Message;
 use PocketIO::Socket;
@@ -39,8 +40,19 @@ sub new {
     $self->{on_close}            ||= sub { };
 
     $self->{socket} ||= $self->_build_socket;
-    my $on_connect = delete $self->{on_connect} || sub {};
-    $self->{on_connect} = sub { $on_connect->($self->{socket}, @_) };
+    my $on_connect = delete $self->{on_connect} || sub { };
+    $self->{on_connect} = sub {
+        my @args = @_;
+        try {
+            $on_connect->($self->{socket}, @args);
+        }
+        catch {
+            warn "Connection error: $_";
+
+            $self->close;
+            $self->emit('exception');
+        }
+    };
 
     DEBUG && $self->_debug('Connection created');
 
@@ -229,7 +241,7 @@ sub send {
 }
 
 sub broadcast {
-    my $self  = shift;
+    my $self = shift;
 
     return PocketIO::Broadcast->new(conn => $self, pool => $self->pool);
 }
@@ -260,20 +272,25 @@ sub parse_message {
 
         my $id = $message->id;
 
-        $self->{socket}->emit($name, @$args, sub {
-            my $message = PocketIO::Message->new(
-                type       => 'ack',
-                message_id => $id,
-                args       => [@_]
-            );
+        $self->{socket}->emit(
+            $name, @$args,
+            sub {
+                my $message = PocketIO::Message->new(
+                    type       => 'ack',
+                    message_id => $id,
+                    args       => [@_]
+                );
 
-            $self->write($message);
-        });
+                $self->write($message);
+            }
+        );
     }
     elsif ($message->type eq 'heartbeat') {
+
         # TODO
     }
     else {
+
         # TODO
     }
 

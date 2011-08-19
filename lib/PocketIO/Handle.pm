@@ -120,13 +120,17 @@ sub close {
     $handle->on_drain;
     $handle->on_error;
 
-    $handle->on_drain(sub {
-        shutdown $_[0]->fh, 1;
-        close $handle->fh;
+    $handle->on_drain(
+        sub {
+            if ($_[0]->fh) {
+                shutdown $_[0]->fh, 1;
+                close $handle->fh;
+            }
 
-        $_[0]->destroy;
-        undef $handle;
-    });
+            $_[0]->destroy;
+            undef $handle;
+        }
+    );
 
     return $self;
 }

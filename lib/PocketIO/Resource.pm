@@ -19,7 +19,7 @@ my %TRANSPORTS = (
     'jsonp-polling' => 'JSONPPolling',
     'websocket'     => 'WebSocket',
 #    'xhr-multipart' => 'XHRMultipart',
-    'xhr-polling'   => 'XHRPolling',
+    'xhr-polling' => 'XHRPolling',
 );
 
 sub new {
@@ -32,7 +32,8 @@ sub new {
     $self->{close_timeout}     ||= 25;
     $self->{max_connections}   ||= 100;
 
-    $self->{transports} ||= [qw/websocket flashsocket htmlfile xhr-polling jsonp-polling/];
+    $self->{transports}
+      ||= [qw/websocket flashsocket htmlfile xhr-polling jsonp-polling/];
 
     return $self;
 }
@@ -87,7 +88,17 @@ sub _dispatch_handshake {
         my $req = Plack::Request->new($env);
 
         return $self->_build_connection(
-            on_connect => $cb,
+            on_connect   => $cb,
+            on_exception => sub {
+                my $body = 'Service unavailable';
+                return $respond->(
+                    503,
+                    [   'Content-Length' => length($body),
+                        'Content-Type'   => 'text/plain'
+                    ],
+                    [$body]
+                );
+            },
             $self->_on_connection_created($req, $respond)
         );
     };
