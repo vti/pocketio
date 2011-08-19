@@ -42,7 +42,9 @@ sub new {
     $self->{socket} ||= $self->_build_socket;
     my $on_connect = delete $self->{on_connect} || sub { };
     $self->{on_connect} = sub {
+        my $self = shift;
         my @args = @_;
+
         try {
             $on_connect->($self->{socket}, @args);
         }
@@ -50,7 +52,6 @@ sub new {
             warn "Connection error: $_";
 
             $self->close;
-            $self->emit('exception');
         }
     };
 
@@ -96,12 +97,12 @@ sub connected {
 
     $self->{is_connected} = 1;
 
-    $self->emit('connect');
-
     my $message = PocketIO::Message->new(type => 'connect');
     $self->write($message);
 
     $self->_start_timer('close');
+
+    $self->emit('connect');
 
     return $self;
 }
@@ -138,6 +139,8 @@ sub disconnected {
         after => 0,
         cb    => sub {
             $self->{socket}->emit('disconnect');
+            undef $self->{socket};
+            undef $self;
         }
     );
 
@@ -146,6 +149,9 @@ sub disconnected {
 
 sub close {
     my $self = shift;
+
+    my $message = PocketIO::Message->new(type => 'disconnect');
+    $self->write($message);
 
     $self->emit('close');
 

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Plack::Request;
+use Try::Tiny;
 
 use PocketIO::Transport::Htmlfile;
 use PocketIO::Transport::JSONPPolling;
@@ -87,20 +88,24 @@ sub _dispatch_handshake {
 
         my $req = Plack::Request->new($env);
 
-        return $self->_build_connection(
-            on_connect   => $cb,
-            on_exception => sub {
-                my $body = 'Service unavailable';
-                return $respond->(
-                    503,
-                    [   'Content-Length' => length($body),
-                        'Content-Type'   => 'text/plain'
-                    ],
-                    [$body]
-                );
-            },
-            $self->_on_connection_created($req, $respond)
-        );
+        try {
+            $self->_build_connection(
+                on_connect => $cb,
+                $self->_on_connection_created($req, $respond)
+            );
+        }
+        catch {
+            warn "Handshake error: $_";
+
+            my $body = 'Service unavailable';
+            $respond->(
+                503,
+                [   'Content-Type'   => 'text/plain',
+                    'Content-Length' => length($body)
+                ],
+                [$body]
+            );
+        };
     };
 }
 
