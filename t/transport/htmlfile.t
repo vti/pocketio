@@ -6,7 +6,6 @@ use PocketIO::Test;
 
 use AnyEvent;
 use AnyEvent::Impl::Perl;
-use AnyEvent::HTTP;
 use AnyEvent::Socket;
 use Plack::Builder;
 
