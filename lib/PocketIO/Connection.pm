@@ -318,6 +318,7 @@ sub write {
         $self->emit('write', $bytes);
     }
     else {
+        DEBUG && $self->_debug("Staging '" . substr($bytes, 0, 50) . "'");
         $self->stage_message($bytes);
     }
 }
