@@ -138,8 +138,13 @@ sub disconnected {
     $self->{disconnect_timer} = AnyEvent->timer(
         after => 0,
         cb    => sub {
-            $self->{socket}->emit('disconnect');
-            undef $self->{socket};
+            return unless $self;
+
+            if ($self->{socket}) {
+                $self->{socket}->emit('disconnect');
+                undef $self->{socket};
+            }
+
             undef $self;
         }
     );
