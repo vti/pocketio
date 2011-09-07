@@ -66,7 +66,7 @@ sub remove_connection {
 
     DEBUG && warn "Removed connection '" . $id . "'\n";
 
-    $cb->();
+    $cb->() if $cb;
 }
 
 sub send {
