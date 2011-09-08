@@ -30,7 +30,6 @@ builder {
       Plack::App::File->new(file => "$root/public/WebSocketMainInsecure.swf");
 
     mount '/socket.io' => PocketIO->new(
-        socketio => {transports => ['xhr-polling']},
         handler => sub {
             my $self = shift;
 
