@@ -285,6 +285,10 @@ on the GitHub L<https://github.com/LearnBoost/Socket.IO>.
 
 Socket.IO author(s) and contributors.
 
+Jens Gassmann
+
+Uwe Voelker
+
 =head1 AUTHOR
 
 Viacheslav Tykhanovskyi, C<vti@cpan.org>.
