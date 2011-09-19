@@ -72,6 +72,8 @@ sub _dispatch_stream {
         $handle->write(
             join "\x0d\x0a" => 'HTTP/1.1 200 OK',
             qq{Content-Type: multipart/x-mixed-replace;boundary="$boundary"},
+            'Access-Control-Allow-Origin: *',
+            'Access-Control-Allow-Credentials: *',
             'Connection: keep-alive', '', ''
         );
 
