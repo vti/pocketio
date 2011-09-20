@@ -46,6 +46,8 @@ sub _dispatch_stream {
             'Content-Type: text/html',
             'Connection: keep-alive',
             'Transfer-Encoding: chunked',
+            'Access-Control-Allow-Origin: *',
+            'Access-Control-Allow-Credentials: *',
             '',
             sprintf('%x', 173 + 83),
             '<html><body><script>var _ = function (msg) { parent.s._(msg, document); };</script>'.
