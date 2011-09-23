@@ -95,9 +95,10 @@ sub _write {
         join(
             "\x0d\x0a" => 'HTTP/1.1 200 OK',
             'Content-Type: ' . $self->_content_type,
-            'Content-Length: ' . length($message), '', $message,
+            'Content-Length: ' . length($message),
             'Access-Control-Allow-Origin: *',
             'Access-Control-Allow-Credentials: *',
+            '', $message,
         ),
         sub {
             $handle->close;
