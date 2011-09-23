@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Plack::Component';
 
-our $VERSION = '0.00904';
+our $VERSION = '0.00905';
 
 use Plack::Util ();
 use Plack::Util::Accessor qw(handler class instance method);
