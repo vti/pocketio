@@ -19,7 +19,7 @@ sub test_pocketio {
         server => sub {
             my $port   = shift;
             my $server = Plack::Loader->load(
-                'Fliggy',
+                'Twiggy',
                 port => $port,
                 host => ('127.0.0.1')
             );

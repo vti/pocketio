@@ -14,7 +14,7 @@ license 'artistic_2';
 perl_version '5.008007';
 
 requires 'AnyEvent'            => '0';
-requires 'Fliggy'              => '0';
+requires 'Twiggy'              => '0';
 requires 'JSON'                => '0';
 requires 'Plack'               => '0';
 requires 'Protocol::WebSocket' => '0.009003';
