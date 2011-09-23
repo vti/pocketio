@@ -102,3 +102,73 @@ sub close {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+PocketIO::Socket - Socket class
+
+=head1 DESCRIPTION
+
+Instance of L<PocketIO::Socket> is actually the object that you get in a
+handler.
+
+    builder {
+        mount '/socket.io' => PocketIO->new(
+            handler => sub {
+                my $socket = shift;
+
+                # $socket is PocketIO::Socket instance
+            }
+        );
+
+        ...
+    };
+
+=head1 METHODS
+
+=head2 C<new>
+
+Create new instance.
+
+=head2 C<close>
+
+Close connection.
+
+=head2 C<emit>
+
+Emit event.
+
+=head2 C<get>
+
+Get attribute.
+
+=head2 C<set>
+
+Set atribute.
+
+=head2 C<id>
+
+Get session id.
+
+=head2 C<session_id>
+
+Same as C<id>.
+
+=head2 C<on>
+
+Register event.
+
+=head2 C<send>
+
+Send message.
+
+=head2 C<sockets>
+
+Get sockets object.
+
+=head2 C<broadcast>
+
+Get broadcasting object.
+
+=cut

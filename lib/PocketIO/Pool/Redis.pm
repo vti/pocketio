@@ -105,3 +105,40 @@ sub _create_client {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+PocketIO::Pool::Redis - Redis class
+
+=head1 SYNOPSIS
+
+    my $pocketio = PocketIO->new(pool => PocketIO::Pool::Redis->new);
+
+=head1 DESCRIPTION
+
+Uses Redis' pub/sub infrastructure 
+
+=head1 METHODS
+
+=head2 C<new>
+
+Create new instance.
+
+=head2 C<add_connection>
+
+Add new connection.
+
+=head2 C<remove_connection>
+
+Remove connection.
+
+=head2 C<broadcast>
+
+Send broadcast message.
+
+=head2 C<send>
+
+Send message to all client.
+
+=cut

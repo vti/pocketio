@@ -252,23 +252,27 @@ subroutine.
 For TLS/SSL a secure proxy is needed. C<stunnel> or L<App::TLSMe> are
 recommended.
 
+=head1 SCALING
+
+See L<PocketIO::Pool::Redis>.
+
+=head1 DEBUGGING
+
+Use C<POCKETIO_DEBUG> and C<POCKETIO_CONNECTION_DEBUG> variables for debugging.
+
 =head1 METHODS
 
-=over
-
-=item new
+=head2 C<new>
 
 Create a new L<PocketIO> instance.
 
-=item pool
+=head2 C<pool>
 
 Holds L<PocketIO::Pool> object by default.
 
-=item call
+=head2 C<call>
 
 A usual L<Plack::Component> call method.
-
-=back
 
 =head1 SEE ALSO
 

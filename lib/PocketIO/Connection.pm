@@ -407,8 +407,55 @@ PocketIO::Connection - Connection class
 =head1 DESCRIPTION
 
 L<PocketIO::Connection> is a connection class that
-incapsulates all the logic for bulding and parsing Socket.IO messages.
+incapsulates all the logic for bulding and parsing Socket.IO messages. Used
+internally.
 
 =head1 METHODS
+
+=head2 C<broadcast>
+
+=head2 C<close>
+
+=head2 C<connected>
+
+=head2 C<connecting>
+
+=head2 C<disconnected>
+
+=head2 C<emit>
+
+=head2 C<has_staged_messages>
+
+=head2 C<id>
+
+=head2 C<is_connected>
+
+=head2 C<new>
+
+=head2 C<on>
+
+=head2 C<parse_message>
+
+=head2 C<pool>
+
+=head2 C<reconnected>
+
+=head2 C<reconnecting>
+
+=head2 C<send>
+
+=head2 C<send_heartbeat>
+
+=head2 C<socket>
+
+=head2 C<sockets>
+
+=head2 C<stage_message>
+
+=head2 C<staged_message>
+
+=head2 C<type>
+
+=head2 C<write>
 
 =cut

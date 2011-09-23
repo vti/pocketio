@@ -127,4 +127,8 @@ L<PocketIO::Pool> is a connection pool.
 
 =head2 C<connections>
 
+=head2 C<send>
+
+=head2 C<broadcast>
+
 =cut

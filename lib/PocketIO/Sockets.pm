@@ -44,3 +44,28 @@ sub _build_event_message {
 }
 
 1;
+__END__
+
+=head1 NAME
+
+PocketIO::Sockets - Sockets class
+
+=head1 DESCRIPTION
+
+Used to send messages to B<all> clients.
+
+=head1 METHODS
+
+=head2 C<new>
+
+Create new instance.
+
+=head2 C<send>
+
+Send message.
+
+=head2 C<emit>
+
+Emit event.
+
+=cut
