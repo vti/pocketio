@@ -17,7 +17,7 @@ requires 'AnyEvent'            => '0';
 requires 'Twiggy'              => '0';
 requires 'JSON'                => '0';
 requires 'Plack'               => '0';
-requires 'Protocol::WebSocket' => '0.009003';
+requires 'Protocol::WebSocket' => '0.009005';
 requires 'Scalar::Util'        => '0';
 requires 'Try::Tiny'           => '0';
 
