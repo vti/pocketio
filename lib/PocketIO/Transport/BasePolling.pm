@@ -12,7 +12,8 @@ sub dispatch {
     my $req  = $self->req;
     my $name = $self->name;
 
-    return unless $req->path =~ m{^/\d+/$name/(\d+)/?$};
+    PocketIO::Exception->throw(400 => 'Wrong path')
+      unless $req->path =~ m{^/\d+/$name/(\d+)/?$};
 
     if ($req->method eq 'GET') {
         return $self->_dispatch_stream($1);
@@ -26,10 +27,8 @@ sub _dispatch_stream {
     my ($id) = @_;
 
     my $conn = $self->find_connection($id);
-    return unless $conn;
 
     my $handle = $self->_build_handle(fh => $self->env->{'psgix.io'});
-    return unless $handle;
 
     return sub {
         my $respond = shift;
@@ -72,7 +71,6 @@ sub _dispatch_send {
     my ($id) = @_;
 
     my $conn = $self->find_connection($id);
-    return unless $conn;
 
     my $data = $self->_get_content;
 

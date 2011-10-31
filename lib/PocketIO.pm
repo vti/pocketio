@@ -5,11 +5,13 @@ use warnings;
 
 use base 'Plack::Component';
 
-our $VERSION = '0.00905';
+our $VERSION = '0.00906';
 
+use Plack::Builder;
 use Plack::Util ();
 use Plack::Util::Accessor qw(handler class instance method);
 
+use PocketIO::Exception;
 use PocketIO::Resource;
 use PocketIO::Pool;
 
@@ -20,7 +22,11 @@ sub new {
 
     $self->{socketio} ||= {};
 
-    return $self;
+    return builder {
+        enable 'HTTPExceptions';
+
+        return $self;
+    };
 }
 
 sub call {
@@ -29,8 +35,7 @@ sub call {
 
     my $dispatcher = $self->_build_dispatcher(%{$self->{socketio}});
 
-    return $dispatcher->dispatch($env, $self->handler)
-      || [400, ['Content-Type' => 'text/plain'], ['Bad request']];
+    return $dispatcher->dispatch($env, $self->handler);
 }
 
 sub pool {

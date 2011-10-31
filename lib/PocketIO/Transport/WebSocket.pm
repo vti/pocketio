@@ -8,6 +8,7 @@ use base 'PocketIO::Transport::Base';
 use Protocol::WebSocket::Frame;
 use Protocol::WebSocket::Handshake::Server;
 
+use PocketIO::Exception;
 use PocketIO::Handle;
 
 sub name {'websocket'}
@@ -16,15 +17,16 @@ sub dispatch {
     my $self = shift;
 
     my $fh = $self->req->env->{'psgix.io'};
-    return unless $fh;
+    PocketIO::Exception->throw(500 => 'No psgix.io available') unless $fh;
 
     my $hs =
       Protocol::WebSocket::Handshake::Server->new_from_psgi($self->req->env);
-    return unless $hs->parse($fh);
-
-    my $version = $hs->version;
+    PocketIO::Exception->throw('WebSocket failed: ' . $hs->error)
+      unless $hs->parse($fh);
 
     return unless $hs->is_done;
+
+    my $version = $hs->version;
 
     my $handle = $self->_build_handle(fh => $fh);
     my $frame = Protocol::WebSocket::Frame->new(version => $version);

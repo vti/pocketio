@@ -6,6 +6,7 @@ use warnings;
 use Plack::Request;
 use Try::Tiny;
 
+use PocketIO::Exception;
 use PocketIO::Transport::Htmlfile;
 use PocketIO::Transport::JSONPPolling;
 use PocketIO::Transport::WebSocket;
@@ -45,7 +46,8 @@ sub dispatch {
 
     my $method = $env->{REQUEST_METHOD};
 
-    return unless $method eq 'POST' || $method eq 'GET';
+    PocketIO::Exception->throw(400 => 'Unexpected method')
+      unless $method eq 'POST' || $method eq 'GET';
 
     my $path_info = $env->{PATH_INFO};
     $path_info =~ s{^/}{};
@@ -53,16 +55,19 @@ sub dispatch {
 
     my ($protocol_version, $transport_id, $session_id) = split '/',
       $path_info, 3;
-    return unless $protocol_version && $protocol_version =~ m/^\d+$/;
+    PocketIO::Exception->throw(400 => 'No Socket.IO protocol version found')
+      unless $protocol_version
+          && $protocol_version =~ m/^\d+$/;
 
     if (!$transport_id && !$session_id) {
         return $self->_dispatch_handshake($env, $cb);
     }
 
-    return unless $transport_id && $session_id;
+    PocketIO::Exception->throw(400 => 'Missing transport id and session id')
+      unless $transport_id && $session_id;
 
     my $conn = $self->_find_connection($session_id);
-    return unless $conn;
+    PocketIO::Exception->throw(400 => 'Unknown session id') unless $conn;
 
     my $transport = $self->_build_transport(
         $transport_id,
@@ -72,11 +77,16 @@ sub dispatch {
         heartbeat_timeout => $self->{heartbeat_timeout},
         close_timeout     => $self->{close_timeout}
     );
-    return unless $transport;
 
     $conn->type($transport->name);
 
-    return $transport->dispatch;
+    return try {
+        $transport->dispatch;
+    }
+    catch {
+        warn $_ if DEBUG;
+        die $_;
+    };
 }
 
 sub _dispatch_handshake {
@@ -111,7 +121,7 @@ sub _dispatch_handshake {
 sub _build_connection {
     my $self = shift;
 
-    return $self->{pool}->add_connection(@_);
+    $self->{pool}->add_connection(@_);
 }
 
 sub _on_connection_created {
@@ -156,7 +166,8 @@ sub _build_transport {
     my $self = shift;
     my ($type, @args) = @_;
 
-    return unless exists $TRANSPORTS{$type};
+    PocketIO::Exception->throw(400 => 'Transport building failed')
+      unless exists $TRANSPORTS{$type};
 
     my $class = "PocketIO::Transport::$TRANSPORTS{$type}";
 

@@ -50,6 +50,8 @@ sub parse {
     ($self->{type}, $self->{id}, $self->{endpoint}, $self->{data}) =
       split ':', $string, 4;
 
+    return unless defined $self->{type};
+
     if ($self->{id} =~ s/\+$//) {
         # TODO ack
     }

@@ -11,12 +11,19 @@ my $pool = PocketIO::Pool->new;
 my $d    = PocketIO::Resource->new(pool => $pool);
 my $cb   = sub { };
 
-ok !$d->dispatch({REQUEST_METHOD => 'HEAD'}, $cb);
-ok !$d->dispatch({REQUEST_METHOD => 'GET', PATH_INFO => '/hello'}, $cb);
+eval { $d->dispatch({REQUEST_METHOD => 'HEAD'}, $cb); };
+ok($@);
+
+eval { $d->dispatch({REQUEST_METHOD => 'GET', PATH_INFO => '/hello'}, $cb) };
+ok($@);
 
 $pool = PocketIO::Pool->new;
-ok !PocketIO::Resource->new(pool => $pool)
-  ->dispatch({REQUEST_METHOD => 'GET', PATH_INFO => '/1/websocket/123'}, $cb);
+eval {
+    PocketIO::Resource->new(pool => $pool)
+      ->dispatch({REQUEST_METHOD => 'GET', PATH_INFO => '/1/websocket/123'},
+        $cb);
+};
+ok($@);
 
 my $res;
 my $delayed =
