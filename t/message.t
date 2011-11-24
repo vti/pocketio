@@ -4,7 +4,7 @@ use utf8;
 
 use Encode ();
 
-use Test::More tests => 25;
+use Test::More tests => 28;
 
 use_ok('PocketIO::Message');
 
@@ -71,6 +71,15 @@ is $m->to_bytes, '7::/test:foo+bar';
 
 $m = PocketIO::Message->new(type => 'noop');
 is $m->to_bytes, '8';
+
+$m = PocketIO::Message->new->parse('5:1+::{"args":"foo"],"name":"foo"}');
+ok(not defined $m);
+
+$m = PocketIO::Message->new->parse('foobar');
+ok(not defined $m);
+
+$m = PocketIO::Message->new->parse('100:');
+ok(not defined $m);
 
 $m = PocketIO::Message->new->parse('0::/test');
 is $m->type,     'disconnect';
