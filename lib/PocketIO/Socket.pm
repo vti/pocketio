@@ -3,6 +3,8 @@ package PocketIO::Socket;
 use strict;
 use warnings;
 
+use PocketIO::Message;
+
 # DEPRECATED
 sub send_message          {&send}
 sub send_broadcast        { shift->broadcast->send(@_) }
@@ -64,11 +66,9 @@ sub emit {
     my $self  = shift;
     my $event = shift;
 
-    $event = "on_$event";
+    $event = $self->_build_event_message($event, @_);
 
-    return unless exists $self->{$event};
-
-    $self->{$event}->($self, @_);
+    $self->send($event);
 
     return $self;
 }
@@ -99,6 +99,16 @@ sub close {
     $self->{conn}->close;
 
     return $self;
+}
+
+sub _build_event_message {
+    my $self  = shift;
+    my $event = shift;
+
+    return PocketIO::Message->new(
+        type => 'event',
+        data => {name => $event, args => [@_]}
+    );
 }
 
 1;

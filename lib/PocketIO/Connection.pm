@@ -275,7 +275,7 @@ sub parse_message {
     $self->_stop_timer('close');
 
     if ($message->is_message) {
-        $self->{socket}->emit('message', $message->data);
+        $self->{socket}->on('message')->($self->{socket}, $message->data);
     }
     elsif ($message->type eq 'event') {
         my $name = $message->data->{name};
@@ -283,9 +283,9 @@ sub parse_message {
 
         my $id = $message->id;
 
-        $self->{socket}->emit(
-            $name, @$args,
-            sub {
+        $self->{socket}->on($name)->(
+            $self->{socket},
+            @$args => sub {
                 my $message = PocketIO::Message->new(
                     type       => 'ack',
                     message_id => $id,
