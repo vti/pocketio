@@ -1,7 +1,12 @@
 Revision history for perl module PocketIO
 
-0.009006 2011-10-11
+0.009006 2011-12-02
 
+ - Made message parsing more robust. Closes #GH-10
+ - Socket emit should emit client event not server
+ - Use exceptions
+ - Updated socket.io.js in example
+ - Increased connection timeout
  - Require Protocol::WebSocket 0.9.5
  - Increased connection timeout to 30s
 
