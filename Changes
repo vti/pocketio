@@ -1,5 +1,9 @@
 Revision history for perl module PocketIO
 
+0.009006 2011-12-03
+
+ - Fixed CPAN dist
+
 0.009006 2011-12-02
 
  - Made message parsing more robust. Closes #GH-10
