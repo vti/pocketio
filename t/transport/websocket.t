@@ -19,6 +19,8 @@ my $app = builder {
             my $self = shift;
 
             ok(1);
+
+            $self->close;
         }
     );
 };
@@ -52,13 +54,11 @@ test_pocketio(
 
                     $hs->parse($chunk) unless $hs->is_done;
 
-                    if ($hs->is_done) {
+                    if ($hs->is_done && length($chunk)) {
                         $frame->append($chunk);
 
-                        if (my $message = $frame->next) {
+                        if (my $message = $frame->next_bytes) {
                             is $message, '1::';
-                            undef $read_watcher;
-                            $cv->end;
                         }
                     }
 
