@@ -1,6 +1,10 @@
 Revision history for perl module PocketIO
 
-0.009006 2011-12-03
+0.009008 2011-12-06
+
+ - Fixed websocket test
+
+0.009007 2011-12-03
 
  - Fixed CPAN dist
 

@@ -5,6 +5,7 @@
 ^\.git
 .tar.gz$
 .swp$
+.un~$
 MANIFEST.bak
 README.pod
 Debian_CPANTS.txt

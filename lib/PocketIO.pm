@@ -5,7 +5,7 @@ use warnings;
 
 use base 'Plack::Component';
 
-our $VERSION = '0.00907';
+our $VERSION = '0.00908';
 
 use Plack::Builder;
 use Plack::Util ();
