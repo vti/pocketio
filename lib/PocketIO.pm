@@ -5,11 +5,11 @@ use warnings;
 
 use base 'Plack::Component';
 
-our $VERSION = '0.00908';
+our $VERSION = '0.00909';
 
-use Plack::Builder;
 use Plack::Util ();
 use Plack::Util::Accessor qw(handler class instance method);
+use Plack::Middleware::HTTPExceptions;
 
 use PocketIO::Exception;
 use PocketIO::Resource;
@@ -22,20 +22,22 @@ sub new {
 
     $self->{socketio} ||= {};
 
-    return builder {
-        enable 'HTTPExceptions';
-
-        return $self;
-    };
+    return $self;
 }
 
 sub call {
     my $self = shift;
     my ($env) = @_;
 
-    my $dispatcher = $self->_build_dispatcher(%{$self->{socketio}});
+    my $mw = Plack::Middleware::HTTPExceptions->new;
+    $mw->wrap(
+        sub {
+            my $dispatcher = $self->_build_dispatcher(%{$self->{socketio}});
 
-    return $dispatcher->dispatch($env, $self->handler);
+            return $dispatcher->dispatch($env, $self->handler);
+        }
+    );
+    $mw->call($env);
 }
 
 sub pool {
