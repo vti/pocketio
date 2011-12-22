@@ -105,15 +105,7 @@ sub _dispatch_handshake {
         catch {
             warn "Handshake error: $_";
 
-            my $body = 'Service unavailable';
-            $respond->(
-                [   503,
-                    [   'Content-Type'   => 'text/plain',
-                        'Content-Length' => length($body)
-                    ],
-                    [$body]
-                ]
-            );
+            PocketIO::Exception->throw(503 => 'Service unavailable');
         };
     };
 }
