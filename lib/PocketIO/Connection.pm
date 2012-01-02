@@ -141,7 +141,9 @@ sub disconnected {
             return unless $self;
 
             if ($self->{socket}) {
-                $self->{socket}->emit('disconnect');
+                if (my $cb = $self->{socket}->on('disconnect')) {
+                    $cb->($self->{socket});
+                }
                 undef $self->{socket};
             }
 
