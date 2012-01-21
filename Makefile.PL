@@ -21,7 +21,6 @@ requires 'JSON'                => '0';
 requires 'Plack'               => '0';
 requires 'Protocol::SocketIO'  => '0';
 requires 'Protocol::WebSocket' => '0.009006';
-requires 'Twiggy'              => '0';
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 
