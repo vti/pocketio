@@ -13,6 +13,7 @@ abstract 'Socket.IO Plack app';
 license 'artistic_2';
 perl_version '5.008007';
 
+requires 'Carp'         => '0';
 requires 'Scalar::Util' => '0';
 
 requires 'AnyEvent'            => '0';

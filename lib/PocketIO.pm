@@ -3,41 +3,60 @@ package PocketIO;
 use strict;
 use warnings;
 
-use base 'Plack::Component';
-
 our $VERSION = '0.00909';
 
-use Plack::Util ();
-use Plack::Util::Accessor qw(handler class instance method);
-use Plack::Middleware::HTTPExceptions;
+use overload '&{}' => sub { shift->to_app(@_) }, fallback => 1;
 
 use PocketIO::Exception;
 use PocketIO::Resource;
 use PocketIO::Pool;
 
 sub new {
-    my $self = shift->SUPER::new(@_);
+    my $class = shift;
 
-    $self->handler($self->_get_handler);
+    my $self = {@_};
+    bless $self, $class;
+
+    $self->{handler} = $self->_get_handler;
 
     $self->{socketio} ||= {};
 
     return $self;
 }
 
+sub to_app {
+    my $self = shift;
+
+    return sub { $self->call(@_) };
+}
+
 sub call {
     my $self = shift;
     my ($env) = @_;
 
-    my $mw = Plack::Middleware::HTTPExceptions->new;
-    $mw->wrap(
-        sub {
-            my $dispatcher = $self->_build_dispatcher(%{$self->{socketio}});
+    my $response;
+    eval {
+        my $dispatcher = $self->_build_dispatcher(%{$self->{socketio}});
 
-            return $dispatcher->dispatch($env, $self->handler);
-        }
-    );
-    $mw->call($env);
+        $response = $dispatcher->dispatch($env, $self->{handler});
+    } or do {
+        my $e = $@;
+
+        require Scalar::Util;
+        die $e unless Scalar::Util::blessed($e);
+
+        my $code = $e->code;
+        my $message = $e->message || 'Internal Server Error';
+
+        my @headers = (
+            'Content-Type'   => 'text/plain',
+            'Content-Length' => length($message),
+        );
+
+        $response = [$code, \@headers, [$message]];
+    };
+
+    return $response;
 }
 
 sub pool {
@@ -57,15 +76,24 @@ sub _build_dispatcher {
 sub _get_handler {
     my $self = shift;
 
-    return $self->handler if $self->handler;
+    return $self->{handler} if $self->{handler};
 
     die q{Either 'handler', 'class' or 'instance' must be specified}
-      unless $self->instance || $self->class;
+      unless $self->{instance} || $self->{class};
 
-    my $method = $self->method || 'run';
+    my $method = $self->{method} || 'run';
 
-    my $instance = $self->instance
-      || do { Plack::Util::load_class($self->class); $self->class->new; };
+    my $instance = $self->{instance}
+      || do {
+        my $class = $self->{class};
+
+        my $path = $class;
+        $path =~ s{::}{/}g;
+        $path .= '.pm';
+
+        require $path;
+        $class->new;
+      };
 
     return $instance->run;
 }
@@ -75,7 +103,7 @@ __END__
 
 =head1 NAME
 
-PocketIO - Socket.IO Plack application
+PocketIO - Socket.IO PSGI application
 
 =head1 SYNOPSIS
 
@@ -248,9 +276,8 @@ Not implemented yet.
         }
     }
 
-Loads C<class> using L<Plack::Util::load_class>, creates a new object or uses
-a passed C<instance> and runs C<run> method expecting it to return an anonymous
-subroutine.
+Loads C<class>, creates a new object or uses a passed C<instance> and runs
+C<run> method expecting it to return an anonymous subroutine.
 
 =back
 
@@ -279,12 +306,18 @@ Holds L<PocketIO::Pool> object by default.
 
 =head2 C<call>
 
-A usual L<Plack::Component> call method.
+For Plack apps compatibility.
+
+=head2 C<to_app>
+
+Returns PSGI code reference.
 
 =head1 SEE ALSO
 
 More information about SocketIO you can find on the website L<http://socket.io/>, or
 on the GitHub L<https://github.com/LearnBoost/Socket.IO>.
+
+L<Protocol::SocketIO>, L<PSGI>
 
 =head1 DEVELOPMENT
 
@@ -308,7 +341,7 @@ Viacheslav Tykhanovskyi, C<vti@cpan.org>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2011, Viacheslav Tykhanovskyi
+Copyright (C) 2011-2012, Viacheslav Tykhanovskyi
 
 This program is free software, you can redistribute it and/or modify it under
 the terms of the Artistic License version 2.0.
