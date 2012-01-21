@@ -11,8 +11,6 @@ use Protocol::WebSocket::Handshake::Server;
 use PocketIO::Exception;
 use PocketIO::Handle;
 
-sub name {'websocket'}
-
 sub dispatch {
     my $self = shift;
 

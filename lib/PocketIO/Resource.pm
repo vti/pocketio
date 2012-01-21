@@ -5,6 +5,7 @@ use warnings;
 
 use Plack::Request;
 use Protocol::SocketIO::Handshake;
+use Protocol::SocketIO::Path;
 use Try::Tiny;
 
 use PocketIO::Exception;
@@ -52,27 +53,21 @@ sub dispatch {
       unless $method eq 'POST' || $method eq 'GET';
 
     my $path_info = $env->{PATH_INFO};
-    $path_info =~ s{^/}{};
-    $path_info =~ s{/$}{};
 
-    my ($protocol_version, $transport_id, $session_id) = split '/',
-      $path_info, 3;
-    PocketIO::Exception->throw(400 => 'No Socket.IO protocol version found')
-      unless $protocol_version
-          && $protocol_version =~ m/^\d+$/;
+    my $path =
+      Protocol::SocketIO::Path->new(transports => $self->{transports})
+      ->parse($path_info);
+    PocketIO::Exception->throw(400 => 'Cannot parse path') unless $path;
 
-    if (!$transport_id && !$session_id) {
+    if ($path->is_handshake) {
         return $self->_dispatch_handshake($env, $cb);
     }
 
-    PocketIO::Exception->throw(400 => 'Missing transport id and session id')
-      unless $transport_id && $session_id;
-
-    my $conn = $self->_find_connection($session_id);
+    my $conn = $self->_find_connection($path->session_id);
     PocketIO::Exception->throw(400 => 'Unknown session id') unless $conn;
 
     my $transport = $self->_build_transport(
-        $transport_id,
+        $path->transport_type,
         env               => $env,
         pool              => $self->{pool},
         conn              => $conn,
@@ -80,7 +75,7 @@ sub dispatch {
         close_timeout     => $self->{close_timeout}
     );
 
-    $conn->type($transport->name);
+    $conn->type($path->transport_type);
 
     return try {
         $transport->dispatch;

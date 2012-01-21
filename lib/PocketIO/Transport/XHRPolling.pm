@@ -5,8 +5,6 @@ use warnings;
 
 use base 'PocketIO::Transport::BasePolling';
 
-sub name {'xhr-polling'}
-
 1;
 __END__
 

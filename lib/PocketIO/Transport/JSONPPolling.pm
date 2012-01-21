@@ -5,8 +5,6 @@ use warnings;
 
 use base 'PocketIO::Transport::BasePolling';
 
-sub name {'jsonp-polling'}
-
 sub _get_content { $_[0]->req->body_parameters->get('d') }
 
 sub _content_type {'text/javascript; charset=UTF-8'}

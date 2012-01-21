@@ -7,26 +7,20 @@ use base 'PocketIO::Transport::Base';
 
 sub dispatch {
     my $self = shift;
-    my ($cb) = @_;
 
-    my $req  = $self->req;
-    my $name = $self->name;
-
-    PocketIO::Exception->throw(400 => 'Wrong path')
-      unless $req->path =~ m{^/\d+/$name/(\d+)/?$};
+    my $req = $self->req;
 
     if ($req->method eq 'GET') {
-        return $self->_dispatch_stream($1);
+        return $self->_dispatch_stream;
     }
 
-    return $self->_dispatch_send($1);
+    return $self->_dispatch_send;
 }
 
 sub _dispatch_stream {
     my $self = shift;
-    my ($id) = @_;
 
-    my $conn = $self->find_connection($id);
+    my $conn = $self->conn;
 
     my $handle = $self->_build_handle(fh => $self->env->{'psgix.io'});
 
@@ -68,9 +62,8 @@ sub _dispatch_stream {
 
 sub _dispatch_send {
     my $self = shift;
-    my ($id) = @_;
 
-    my $conn = $self->find_connection($id);
+    my $conn = $self->conn;
 
     my $data = $self->_get_content;
 

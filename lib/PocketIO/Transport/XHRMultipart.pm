@@ -13,26 +13,20 @@ sub new {
     return $self;
 }
 
-sub name {'xhr-multipart'}
-
 sub dispatch {
     my $self = shift;
 
     my $req  = $self->req;
-    my $name = $self->name;
-
-    return unless $req->path =~ m{^/\d+/$name/(\d+)/?$};
 
     if ($req->method eq 'GET') {
-        return $self->_dispatch_stream($1);
+        return $self->_dispatch_stream;
     }
 
-    return $self->_dispatch_send($1);
+    return $self->_dispatch_send($req);
 }
 
 sub _dispatch_stream {
     my $self = shift;
-    my ($id) = @_;
 
     my $handle = $self->_build_handle($self->req->env->{'psgix.io'});
     return unless $handle;
@@ -40,7 +34,7 @@ sub _dispatch_stream {
     return sub {
         my $respond = shift;
 
-        my $conn = $self->find_connection($id);
+        my $conn = $self->conn;
 
         my $close_cb = sub { $handle->close; $self->client_disconnected($conn); };
         $handle->on_eof($close_cb);
@@ -83,14 +77,11 @@ sub _dispatch_stream {
 
 sub _dispatch_send {
     my $self = shift;
-    my ($req, $id) = @_;
-
-    my $conn = $self->find_connection($id);
-    return unless $conn;
+    my ($req) = @_;
 
     my $data = $req->body_parameters->get('data');
 
-    $conn->read($data);
+    $self->conn->read($data);
 
     return [200, ['Content-Length' => 1], ['1']];
 }
