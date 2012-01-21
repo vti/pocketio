@@ -6,7 +6,6 @@ use warnings;
 use Plack::Request;
 use Protocol::SocketIO::Handshake;
 use Protocol::SocketIO::Path;
-use Try::Tiny;
 
 use PocketIO::Exception;
 use PocketIO::Transport::Htmlfile;
@@ -76,10 +75,7 @@ sub dispatch {
 
     $conn->type($path->transport_type);
 
-    return try {
-        $transport->dispatch;
-    }
-    catch {
+    return eval { $transport->dispatch; } or do {
         warn $_ if DEBUG;
         die $_;
     };
@@ -102,14 +98,17 @@ sub _dispatch_handshake {
     return sub {
         my $respond = shift;
 
-        try {
+        eval {
             $self->_build_connection(
                 on_connect => $cb,
                 $self->_on_connection_created($env, $respond)
             );
-        }
-        catch {
-            warn "Handshake error: $_";
+
+            1;
+        } or do {
+            my $e = $@;
+
+            warn "Handshake error: $e";
 
             PocketIO::Exception->throw(503 => 'Service unavailable');
         };
