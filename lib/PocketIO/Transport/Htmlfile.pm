@@ -22,7 +22,7 @@ sub _dispatch_stream {
 
     my $conn = $self->conn;
 
-    my $handle = $self->_build_handle(fh => $self->env->{'psgix.io'});
+    my $handle = $self->{handle};
 
     return sub {
         my $close_cb =
@@ -90,17 +90,15 @@ __END__
 
 =head1 NAME
 
-PocketIO::Htmlfile - Htmlfile transport
+PocketIO::Transport::Htmlfile - Htmlfile transport
 
 =head1 DESCRIPTION
 
-L<PocketIO::Htmlfile> is a C<htmlfile> transport implementation.
+L<PocketIO::Transport::Htmlfile> is a C<htmlfile> transport implementation.
 
 =head1 METHODS
 
 =over
-
-=item name
 
 =item dispatch
 

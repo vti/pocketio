@@ -22,7 +22,7 @@ sub _dispatch_stream {
 
     my $conn = $self->conn;
 
-    my $handle = $self->_build_handle(fh => $self->env->{'psgix.io'});
+    my $handle = $self->{handle};
 
     return sub {
         my $respond = shift;
@@ -105,15 +105,13 @@ __END__
 
 =head1 NAME
 
-PocketIO::Polling - Basic class for polling transports
+PocketIO::Transport::BasePolling - Basic class for polling transports
 
 =head1 DESCRIPTION
 
 Basic class for polling transports.
 
 =head1 METHODS
-
-=head2 name
 
 =head2 dispatch
 

@@ -22,17 +22,14 @@ __END__
 
 =head1 NAME
 
-PocketIO::JSONPPolling - JSONPPolling transport
+PocketIO::Transport::JSONPPolling - JSONPPolling transport
 
 =head1 DESCRIPTION
 
-L<PocketIO::JSONPPolling> is a C<jsonp-polling> transport
-implementation.
+L<PocketIO::Transport::JSONPPolling> is a C<jsonp-polling> transport implementation.
 
 =head1 METHODS
 
-=head2 C<name>
-
-=head2 C<dispatch>
+Inherits all methods from L<PocketIO::Transport::BasePolling>.
 
 =cut

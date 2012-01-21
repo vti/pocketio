@@ -14,19 +14,17 @@ use PocketIO::Handle;
 sub dispatch {
     my $self = shift;
 
-    my $fh = $self->req->env->{'psgix.io'};
-    PocketIO::Exception->throw(500 => 'No psgix.io available') unless $fh;
+    my $handle = $self->{handle};
 
     my $hs =
       Protocol::WebSocket::Handshake::Server->new_from_psgi($self->req->env);
     PocketIO::Exception->throw('WebSocket failed: ' . $hs->error)
-      unless $hs->parse($fh);
+      unless $hs->parse($handle->fh);
 
     return unless $hs->is_done;
 
     my $version = $hs->version;
 
-    my $handle = $self->_build_handle(fh => $fh);
     my $frame = Protocol::WebSocket::Frame->new(version => $version);
 
     return sub {
@@ -96,15 +94,13 @@ __END__
 
 =head1 NAME
 
-PocketIO::WebSocket - WebSocket transport
+PocketIO::Transport::WebSocket - WebSocket transport
 
 =head1 DESCRIPTION
 
-L<PocketIO::WebSocket> is a WebSocket transport implementation.
+L<PocketIO::Transport::WebSocket> is a WebSocket transport implementation.
 
 =head1 METHODS
-
-=head2 name
 
 =head2 dispatch
 

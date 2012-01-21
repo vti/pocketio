@@ -10,17 +10,14 @@ __END__
 
 =head1 NAME
 
-PocketIO::XHRPolling - XHRPolling transport
+PocketIO::Transport::XHRPolling - XHRPolling transport
 
 =head1 DESCRIPTION
 
-L<PocketIO::XHRPolling> is a C<xhr-polling> transport
-implementation.
+L<PocketIO::Transport::XHRPolling> is a C<xhr-polling> transport implementation.
 
 =head1 METHODS
 
-=head2 C<name>
-
-=head2 C<dispatch>
+Inherict all methods from L<PocketIO::Transport::BasePolling>.
 
 =cut

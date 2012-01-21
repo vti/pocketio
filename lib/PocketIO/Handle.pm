@@ -30,6 +30,8 @@ sub new {
     return $self;
 }
 
+sub fh { $_[0]->{handle}->fh }
+
 sub on_heartbeat {
     my $self = shift;
     my ($cb) = @_;
@@ -151,7 +153,7 @@ L<AnyEvent::Handle>.
 
 =head2 C<new>
 
-=head2 C<heartbeat_timeout>
+=head2 C<fh>
 
 =head2 C<on_heartbeat>
 

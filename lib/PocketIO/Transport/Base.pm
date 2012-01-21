@@ -9,7 +9,6 @@ use Try::Tiny;
 use Scalar::Util qw(weaken);
 
 use Plack::Request;
-use PocketIO::Handle;
 
 sub new {
     my $class = shift;
@@ -39,16 +38,12 @@ sub client_connected {
 
     return if $conn->is_connected;
 
-    $self->_log_client_connected($conn);
-
     $conn->connected;
 }
 
 sub client_disconnected {
     my $self = shift;
     my ($conn) = @_;
-
-    $self->_log_client_disconnected($conn);
 
     $conn->disconnected;
 
@@ -57,62 +52,16 @@ sub client_disconnected {
     return $self;
 }
 
-sub _log_client_connected {
-    my $self = shift;
-    my ($conn) = @_;
-
-    my $logger = $self->_get_logger;
-    return unless $logger;
-
-    $logger->(
-        {   level   => 'debug',
-            message => sprintf(
-                "Client '%s' connected via '%s'",
-                $conn->id, $conn->type
-            )
-        }
-    );
-}
-
-sub _log_client_disconnected {
-    my $self = shift;
-    my ($conn) = @_;
-
-    my $logger = $self->_get_logger;
-    return unless $logger;
-
-    $logger->(
-        {   level   => 'debug',
-            message => sprintf("Client '%s' disconnected", $conn->id)
-        }
-    );
-}
-
-sub _get_logger {
-    my $self = shift;
-
-    return $self->env->{'psgix.logger'};
-}
-
-sub _build_handle {
-    my $self = shift;
-
-    my $heartbeat_timeout = $self->{heartbeat_timeout};
-    $heartbeat_timeout -= 5;
-
-    return PocketIO::Handle->new(heartbeat_timeout => $heartbeat_timeout, @_);
-}
-
 1;
 __END__
 
 =head1 NAME
 
-PocketIO::Base - Base class for transports
+PocketIO::Transport::Base - Base class for transports
 
 =head1 DESCRIPTION
 
-L<PocketIO::Base> is a base class for the transports.
+L<PocketIO::Transport::Base> is a base class for the transports.
 
 =head1 METHODS
 

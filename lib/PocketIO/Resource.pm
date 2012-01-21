@@ -68,12 +68,10 @@ sub dispatch {
 
     my $transport = $self->_build_transport(
         $path->transport_type,
-        env               => $env,
-        pool              => $self->{pool},
-        conn              => $conn,
-        heartbeat_timeout => $self->{heartbeat_timeout},
-        close_timeout     => $self->{close_timeout},
-        on_disconnect     => sub { $self->{pool}->remove_connection($conn) }
+        env           => $env,
+        conn          => $conn,
+        handle        => $self->_build_handle($env),
+        on_disconnect => sub { $self->{pool}->remove_connection($conn) }
     );
 
     $conn->type($path->transport_type);
@@ -85,6 +83,16 @@ sub dispatch {
         warn $_ if DEBUG;
         die $_;
     };
+}
+
+sub _build_handle {
+    my $self = shift;
+    my ($env) = @_;
+
+    return PocketIO::Handle->new(
+        heartbeat_timeout => $self->{heartbeat_timeout},
+        fh                => $env->{'psgix.io'}
+    );
 }
 
 sub _dispatch_handshake {

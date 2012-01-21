@@ -28,11 +28,10 @@ sub dispatch {
 sub _dispatch_stream {
     my $self = shift;
 
-    my $handle = $self->_build_handle($self->req->env->{'psgix.io'});
-    return unless $handle;
-
     return sub {
         my $respond = shift;
+
+        my $handle = $self->{handle};
 
         my $conn = $self->conn;
 
@@ -91,18 +90,15 @@ __END__
 
 =head1 NAME
 
-PocketIO::XHRMultipart - XHRMultipart transport
+PocketIO::Transport::XHRMultipart - XHRMultipart transport
 
 =head1 DESCRIPTION
 
-L<PocketIO::XHRMultipart> is a C<xhr-multipart> transport
-implementation.
+L<PocketIO::Transport::XHRMultipart> is a C<xhr-multipart> transport implementation.
 
 =head1 METHODS
 
 =head2 C<new>
-
-=head2 C<name>
 
 =head2 C<dispatch>
 
