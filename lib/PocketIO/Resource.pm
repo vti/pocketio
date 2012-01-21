@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Plack::Request;
+use Protocol::SocketIO::Handshake;
 use Try::Tiny;
 
 use PocketIO::Exception;
@@ -20,6 +21,7 @@ my %TRANSPORTS = (
     'htmlfile'      => 'Htmlfile',
     'jsonp-polling' => 'JSONPPolling',
     'websocket'     => 'WebSocket',
+
 #    'xhr-multipart' => 'XHRMultipart',
     'xhr-polling' => 'XHRPolling',
 );
@@ -123,10 +125,12 @@ sub _on_connection_created {
     return sub {
         my $conn = shift;
 
-        my $transports = join ',', @{$self->{transports}};
-
-        my $handshake = join ':', $conn->id, $self->{heartbeat_timeout},
-          $self->{close_timeout}, $transports;
+        my $handshake = Protocol::SocketIO::Handshake->new(
+            session_id        => $conn->id,
+            transports        => $self->{transports},
+            heartbeat_timeout => $self->{heartbeat_timeout},
+            close_timeout     => $self->{close_timeout}
+        )->to_bytes;
 
         my $headers = [];
 
