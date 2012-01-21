@@ -72,7 +72,8 @@ sub dispatch {
         pool              => $self->{pool},
         conn              => $conn,
         heartbeat_timeout => $self->{heartbeat_timeout},
-        close_timeout     => $self->{close_timeout}
+        close_timeout     => $self->{close_timeout},
+        on_disconnect     => sub { $self->{pool}->remove_connection($conn) }
     );
 
     $conn->type($path->transport_type);

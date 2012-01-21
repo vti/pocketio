@@ -33,26 +33,6 @@ sub req  {
 sub env  { $_[0]->{env} }
 sub conn { $_[0]->{conn} }
 
-sub add_connection {
-    my $self = shift;
-
-    return $self->{pool}->add_connection(type => $self->name, req => $self->{req}, @_);
-}
-
-sub remove_connection {
-    my $self = shift;
-
-    $self->{pool}->remove_connection($_[0]);
-
-    return $self;
-}
-
-sub find_connection {
-    my $self = shift;
-
-    return $self->{pool}->find_connection(@_);
-}
-
 sub client_connected {
     my $self = shift;
     my ($conn) = @_;
@@ -72,7 +52,7 @@ sub client_disconnected {
 
     $conn->disconnected;
 
-    $self->remove_connection($conn);
+    $self->{on_disconnect}->($self);
 
     return $self;
 }
@@ -143,12 +123,6 @@ L<PocketIO::Base> is a base class for the transports.
 =head2 C<req>
 
 =head2 C<conn>
-
-=head2 C<add_connection>
-
-=head2 C<remove_connection>
-
-=head2 C<find_connection>
 
 =head2 C<client_connected>
 
