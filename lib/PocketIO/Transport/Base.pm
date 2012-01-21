@@ -8,8 +8,6 @@ use Encode ();
 use Try::Tiny;
 use Scalar::Util qw(weaken);
 
-use Plack::Request;
-
 sub new {
     my $class = shift;
 
@@ -19,14 +17,6 @@ sub new {
     weaken $self->{conn};
 
     return $self;
-}
-
-sub req  {
-    my $self = shift;
-
-    $self->{req} ||= Plack::Request->new($self->{env});
-
-    return $self->{req};
 }
 
 sub env  { $_[0]->{env} }

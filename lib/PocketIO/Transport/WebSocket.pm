@@ -17,7 +17,7 @@ sub dispatch {
     my $handle = $self->{handle};
 
     my $hs =
-      Protocol::WebSocket::Handshake::Server->new_from_psgi($self->req->env);
+      Protocol::WebSocket::Handshake::Server->new_from_psgi($self->{env});
     PocketIO::Exception->throw('WebSocket failed: ' . $hs->error)
       unless $hs->parse($handle->fh);
 

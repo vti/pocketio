@@ -12,7 +12,7 @@ eval {
 };
 like $@ => qr/Either 'handler', 'class' or 'instance' must be specified/;
 
-my $env = {REQUEST_METHOD => 'GET', PATH_INFO => '/'};
+my $env = {REQUEST_METHOD => 'GET', PATH_INFO => '/1/'};
 
 my $app = PocketIO->new(app => sub { }, handler => sub { });
 ok $app->($env);

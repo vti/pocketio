@@ -5,7 +5,15 @@ use warnings;
 
 use base 'PocketIO::Transport::BasePolling';
 
-sub _get_content { $_[0]->req->body_parameters->get('d') }
+use PocketIO::Util;
+
+sub _get_content {
+    my $self = shift;
+
+    my $content = $self->SUPER::_get_content;
+
+    return PocketIO::Util::urlencoded_param($content, 'd');
+}
 
 sub _content_type {'text/javascript; charset=UTF-8'}
 

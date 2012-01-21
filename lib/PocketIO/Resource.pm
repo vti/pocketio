@@ -3,7 +3,6 @@ package PocketIO::Resource;
 use strict;
 use warnings;
 
-use Plack::Request;
 use Protocol::SocketIO::Handshake;
 use Protocol::SocketIO::Path;
 
@@ -13,6 +12,7 @@ use PocketIO::Transport::JSONPPolling;
 use PocketIO::Transport::WebSocket;
 use PocketIO::Transport::XHRMultipart;
 use PocketIO::Transport::XHRPolling;
+use PocketIO::Util;
 
 use constant DEBUG => $ENV{POCKETIO_RESOURCE_DEBUG};
 
@@ -75,9 +75,10 @@ sub dispatch {
 
     $conn->type($path->transport_type);
 
-    return eval { $transport->dispatch; } or do {
-        warn $_ if DEBUG;
-        die $_;
+    return eval { $transport->dispatch } or do {
+        my $e = $@;
+        warn $e if DEBUG;
+        die $e;
     };
 }
 
@@ -137,10 +138,11 @@ sub _on_connection_created {
 
         my $headers = [];
 
-        my $req = Plack::Request->new($env);
+        my $jsonp =
+          PocketIO::Util::urlencoded_param($env->{QUERY_STRING}, 'jsonp');
 
         # XDomain request
-        if (defined(my $jsonp = $req->param('jsonp'))) {
+        if (defined $jsonp) {
             push @$headers, 'Content-Type' => 'application/javascript';
             $handshake = qq{io.j[$jsonp]("$handshake");};
         }

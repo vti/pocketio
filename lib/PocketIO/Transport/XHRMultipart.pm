@@ -16,13 +16,11 @@ sub new {
 sub dispatch {
     my $self = shift;
 
-    my $req  = $self->req;
-
-    if ($req->method eq 'GET') {
+    if ($self->{env}->{REQUEST_METHOD} eq 'GET') {
         return $self->_dispatch_stream;
     }
 
-    return $self->_dispatch_send($req);
+    return $self->_dispatch_send;
 }
 
 sub _dispatch_stream {
@@ -76,11 +74,10 @@ sub _dispatch_stream {
 
 sub _dispatch_send {
     my $self = shift;
-    my ($req) = @_;
 
-    my $data = $req->body_parameters->get('data');
+    #my $data = $req->body_parameters->get('data');
 
-    $self->conn->read($data);
+    #$self->conn->read($data);
 
     return [200, ['Content-Length' => 1], ['1']];
 }

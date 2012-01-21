@@ -8,9 +8,7 @@ use base 'PocketIO::Transport::Base';
 sub dispatch {
     my $self = shift;
 
-    my $req = $self->req;
-
-    if ($req->method eq 'GET') {
+    if ($self->{env}->{REQUEST_METHOD} eq 'GET') {
         return $self->_dispatch_stream;
     }
 
@@ -70,9 +68,13 @@ sub _dispatch_stream {
 sub _dispatch_send {
     my $self = shift;
 
-    my $data = $self->req->content;
+    my $content_length = $self->{env}->{CONTENT_LENGTH} || 0;
+    my $rcount =
+      $self->{env}->{'psgi.input'}->read(my $chunk, $content_length);
 
-    $self->conn->parse_message($data);
+    PocketIO::Exception->throw(500) unless $rcount == $content_length;
+
+    $self->conn->parse_message($chunk);
 
     return [200, ['Content-Length' => 1], ['1']];
 }

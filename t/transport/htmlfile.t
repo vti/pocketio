@@ -83,6 +83,7 @@ test_pocketio(
                   join "\x0d\x0a" =>
                   "POST /socket.io/1/htmlfile/$session_id HTTP/1.0",
                   "Host: $server:$port",
+                  'Content-Length: 3',
                   '',
                   '2::';
 

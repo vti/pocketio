@@ -5,12 +5,12 @@ use warnings;
 
 use base 'PocketIO::Transport::Base';
 
+use PocketIO::Exception;
+
 sub dispatch {
     my $self = shift;
 
-    my $req = $self->req;
-
-    if ($req->method eq 'GET') {
+    if ($self->{env}->{REQUEST_METHOD} eq 'GET') {
         return $self->_dispatch_stream;
     }
 
@@ -72,7 +72,17 @@ sub _dispatch_send {
     return [200, ['Content-Length' => 1], ['1']];
 }
 
-sub _get_content { $_[0]->req->content }
+sub _get_content {
+    my $self = shift;
+
+    my $content_length = $self->{env}->{CONTENT_LENGTH} || 0;
+    my $rcount =
+      $self->{env}->{'psgi.input'}->read(my $chunk, $content_length);
+
+    PocketIO::Exception->throw(500) unless $rcount == $content_length;
+
+    return $chunk;
+}
 
 sub _content_type {'text/plain'}
 

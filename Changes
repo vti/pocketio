@@ -2,6 +2,8 @@ Revision history for perl module PocketIO
 
 0.009009
 
+ - Plack::Request is not required
+ - Twiggy is not required for testing
  - Extracted SocketIO protocol into a separated distribution
  - Return raw object but wrap exceptions middelware on the fly
  - Fixed on_disconnect callback
