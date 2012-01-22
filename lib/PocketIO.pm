@@ -3,7 +3,7 @@ package PocketIO;
 use strict;
 use warnings;
 
-our $VERSION = '0.00909';
+our $VERSION = '0.10';
 
 use overload '&{}' => sub { shift->to_app(@_) }, fallback => 1;
 

@@ -1,6 +1,6 @@
 Revision history for perl module PocketIO
 
-0.009009
+0.10
 
  - Plack::Request is not required
  - Twiggy is not required for testing
