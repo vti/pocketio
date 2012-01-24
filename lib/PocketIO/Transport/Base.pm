@@ -3,9 +3,6 @@ package PocketIO::Transport::Base;
 use strict;
 use warnings;
 
-use JSON   ();
-use Encode ();
-use Try::Tiny;
 use Scalar::Util qw(weaken);
 
 sub new {

@@ -1,5 +1,9 @@
 Revision history for perl module PocketIO
 
+0.11
+
+ - Fixed modules requirements
+
 0.10
 
  - Plack::Request is not required
