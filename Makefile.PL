@@ -21,6 +21,9 @@ requires 'JSON'                => '0';
 requires 'Protocol::SocketIO'  => '0';
 requires 'Protocol::WebSocket' => '0.009006';
 
+requires 'Test::More' => '0';
+requires 'Test::TCP'  => '0';
+
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t';
 
 no_index directory => 't';

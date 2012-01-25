@@ -1,5 +1,9 @@
 Revision history for perl module PocketIO
 
+0.12
+
+ - Fixed test requirements
+
 0.11
 
  - Fixed modules requirements
