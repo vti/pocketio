@@ -1,14 +1,16 @@
 Revision history for perl module PocketIO
 
-0.12
+0.13 2012-01-28
+
+0.12 2012-01-25
 
  - Fixed test requirements
 
-0.11
+0.11 2012-01-24
 
  - Fixed modules requirements
 
-0.10
+0.10 2012-01-22
 
  - Plack::Request is not required
  - Twiggy is not required for testing
