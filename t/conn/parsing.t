@@ -29,7 +29,7 @@ is_deeply $output => {foo => 'привет'};
 is $conn->_build_message('foo') => '3:::foo';
 is $conn->_build_message({foo => 'bar'}) => '4:::{"foo":"bar"}';
 
-is $conn->_build_message('привет') => '3:::'
+is $conn->_build_message('привет')->to_bytes => '3:::'
   . encode_utf8('привет');
-is $conn->_build_message({foo => 'привет'}) => '4:::{"foo":"'
+is $conn->_build_message({foo => 'привет'})->to_bytes => '4:::{"foo":"'
   . encode_utf8('привет') . '"}';
