@@ -1,6 +1,9 @@
 Revision history for perl module PocketIO
 
-0.13 2012-01-28
+0.14 2012-02-23
+
+ - Fixed exception handling bugs (Jason May)
+ - Provide the status code when throwing a websocket exception (Jason May)
 
 0.12 2012-01-25
 

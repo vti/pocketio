@@ -3,7 +3,7 @@ use warnings;
 use utf8;
 use Encode;
 
-use Test::More tests => 10;
+use Test::More tests => 6;
 
 use_ok('PocketIO::Connection');
 
@@ -24,12 +24,3 @@ is_deeply $output => {foo => 'bar'};
 
 $conn->parse_message('4:1::{"foo":"' . encode_utf8('привет') . '"}');
 is_deeply $output => {foo => 'привет'};
-
-# FIXME private methods testing? are you nuts?!!!
-is $conn->_build_message('foo') => '3:::foo';
-is $conn->_build_message({foo => 'bar'}) => '4:::{"foo":"bar"}';
-
-is $conn->_build_message('привет') => '3:::'
-  . encode_utf8('привет');
-is $conn->_build_message({foo => 'привет'}) => '4:::{"foo":"'
-  . encode_utf8('привет') . '"}';

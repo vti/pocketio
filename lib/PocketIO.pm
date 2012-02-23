@@ -3,7 +3,7 @@ package PocketIO;
 use strict;
 use warnings;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 use overload '&{}' => sub { shift->to_app(@_) }, fallback => 1;
 
@@ -334,6 +334,8 @@ Jens Gassmann
 Uwe Voelker
 
 Oskari Okko Ojala
+
+Jason May
 
 =head1 AUTHOR
 
