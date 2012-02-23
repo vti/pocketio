@@ -18,7 +18,7 @@ sub dispatch {
 
     my $hs =
       Protocol::WebSocket::Handshake::Server->new_from_psgi($self->{env});
-    PocketIO::Exception->throw('WebSocket failed: ' . $hs->error)
+    PocketIO::Exception->throw(500, 'WebSocket failed: ' . $hs->error)
       unless $hs->parse($handle->fh);
 
     return unless $hs->is_done;
