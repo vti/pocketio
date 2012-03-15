@@ -296,7 +296,7 @@ sub parse_message {
 
                 $self->write($message);
             }
-        );
+        ) if defined $self->{socket}->on($name);
     }
     elsif ($message->type eq 'heartbeat') {
 
