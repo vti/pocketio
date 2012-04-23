@@ -103,7 +103,8 @@ sub _dispatch_handshake {
 
         eval {
             $self->_build_connection(
-                on_connect => $cb,
+                on_connect      => $cb,
+                on_connect_args => [$env],
                 $self->_on_connection_created($env, $respond)
             );
 
