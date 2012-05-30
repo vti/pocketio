@@ -111,6 +111,23 @@ sub _build_event_message {
     );
 }
 
+
+sub join {
+    my $self = shift;
+    my $room = shift;
+
+    return $self->{conn}->pool->room_join($room, $self->{conn});
+}
+
+
+sub leave {
+    my $self = shift;
+    my $room = shift;
+
+    return $self->{conn}->pool->room_leave($room, $self->{conn});
+}
+
+
 1;
 __END__
 
@@ -180,5 +197,13 @@ Get sockets object.
 =head2 C<broadcast>
 
 Get broadcasting object.
+
+=head2 C<join>
+
+Join the specified room.
+
+=head2 C<leave>
+
+Leave the specified room.
 
 =cut

@@ -233,7 +233,16 @@ Not implemented yet.
 
 =head2 Rooms
 
-Not implemented yet.
+A room is a named group of connections for more fine-grained
+broadcasts.  You can subscribe or unsubscribe a socket to/from a room:
+
+    sub {
+        my $self = shift;
+        $self->join('a room');
+        $self->sockets->in('a room')->emit('message', data);
+        $self->broadcast->to('a room')->emit("other message");
+    }
+
 
 =head1 CONFIGURATIONS
 

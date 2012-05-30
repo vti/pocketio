@@ -5,6 +5,8 @@ use warnings;
 
 use base 'PocketIO::Sockets';
 
+use PocketIO::Room;
+
 sub send {
     my $self = shift;
 
@@ -22,6 +24,15 @@ sub emit {
     $self->{pool}->broadcast($self->{conn}, $event);
 
     return $self;
+}
+
+
+sub to {
+    my $self = shift;
+    my ($room) = @_;
+
+    return PocketIO::Room->new(room => $room, conn => $self->{conn},
+			       pool => $self->{pool});
 }
 
 1;
@@ -48,5 +59,9 @@ Send message.
 =head2 C<emit>
 
 Emit event.
+
+=head2 C<to>
+
+Only broadcast to a specific room.
 
 =cut
