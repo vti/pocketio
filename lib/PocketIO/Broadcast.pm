@@ -31,8 +31,11 @@ sub to {
     my $self = shift;
     my ($room) = @_;
 
-    return PocketIO::Room->new(room => $room, conn => $self->{conn},
-			       pool => $self->{pool});
+    return PocketIO::Room->new(
+        room => $room,
+        conn => $self->{conn},
+        pool => $self->{pool}
+    );
 }
 
 1;

@@ -16,8 +16,8 @@ sub new {
     bless $self, $class;
 
     $self->{connections} = {};
-    $self->{rooms} = {};
-    $self->{revrooms} = {};
+    $self->{rooms}       = {};
+    $self->{revrooms}    = {};
 
     return $self;
 }
@@ -31,12 +31,11 @@ sub find_local_connection {
     return $self->{connections}->{$id};
 }
 
-
 sub find_connection {
     my $self = shift;
+
     return $self->find_local_connection(@_);
 }
-
 
 sub add_connection {
     my $self = shift;
@@ -59,7 +58,7 @@ sub remove_connection {
 
     delete $self->{connections}->{$id};
     foreach my $room (keys %{$self->{revrooms}{$id}}) {
-	delete $self->{rooms}{$room}{$id};
+        delete $self->{rooms}{$room}{$id};
     }
     delete $self->{revrooms}{$id};
 
@@ -72,76 +71,82 @@ sub room_join {
     my $self = shift;
     my $room = shift;
     my $conn = shift;
-    my $id = blessed $conn ? $conn->id : $conn;
+
+    my $id   = blessed $conn ? $conn->id : $conn;
     $conn = $self->{connections}->{$id};
 
-    $self->{rooms}{$room}{$id} = $conn;
+    $self->{rooms}{$room}{$id}    = $conn;
     $self->{revrooms}{$id}{$room} = $conn;
     return $conn;
 }
 
 sub room_leave {
-    my $self = shift;
-    my $room = shift;
-    my $conn = shift;
+    my $self       = shift;
+    my $room       = shift;
+    my $conn       = shift;
     my ($subrooms) = @_;
+
     my $id = blessed $conn ? $conn->id : $conn;
 
     if ($subrooms) {
-	DEBUG && warn "Deleting '$id' subrooms of '$room'\n";
-	foreach my $subroom (keys %{$self->{revrooms}{$id}}) {
-	    if ($subroom =~ /^\Q$room\E/) {
-		delete $self->{rooms}{$subroom}{$id};
-		delete $self->{revrooms}{$id}{$subroom};
-	    }
-	}
+        DEBUG && warn "Deleting '$id' subrooms of '$room'\n";
+        foreach my $subroom (keys %{$self->{revrooms}{$id}}) {
+            if ($subroom =~ /^\Q$room\E/) {
+                delete $self->{rooms}{$subroom}{$id};
+                delete $self->{revrooms}{$id}{$subroom};
+            }
+        }
     }
     else {
-	DEBUG && warn "Deleting just '$id' room '$room'\n";
-	delete $self->{rooms}{$room}{$id};
-	delete $self->{revrooms}{$id}{$room};
+        DEBUG && warn "Deleting just '$id' room '$room'\n";
+        delete $self->{rooms}{$room}{$id};
+        delete $self->{revrooms}{$id}{$room};
     }
     return $conn;
 }
-
 
 sub msg_send {
     my $self = shift;
     my ($msg) = {@_};
 
     if (defined $msg->{id}) {
-	# Message directly to a connection.
-	my $conn = $self->find_local_connection($msg->{id});
-	if (defined $conn) {
-	    # Send the message here and now.
-	    DEBUG && warn "Sending message to $msg->{id}\n";
-	    $conn->send($msg->{message});
-	}
-	return $conn;
+
+        # Message directly to a connection.
+        my $conn = $self->find_local_connection($msg->{id});
+        if (defined $conn) {
+
+            # Send the message here and now.
+            DEBUG && warn "Sending message to $msg->{id}\n";
+            $conn->send($msg->{message});
+        }
+        return $conn;
     }
 
-    my @members = defined $msg->{room} ? values %{$self->{rooms}{$msg->{room}}} : $self->_connections;
+    my @members =
+      defined $msg->{room}
+      ? values %{$self->{rooms}{$msg->{room}}}
+      : $self->_connections;
     foreach my $conn (@members) {
         next unless blessed $conn && $conn->is_connected;
-	next if defined $msg->{invoker} && $conn->id eq $msg->{invoker}->id;
+        next if defined $msg->{invoker} && $conn->id eq $msg->{invoker}->id;
 
-	DEBUG && warn "Sending message to " . $conn->id . "\n";
+        DEBUG && warn "Sending message to " . $conn->id . "\n";
         $conn->socket->send($msg->{message});
     }
 
     return $self;
 }
 
-
 sub send {
     my $self = shift;
+
     return $self->msg_send(message => "$_[0]");
 }
-
 
 sub broadcast {
     my $self    = shift;
     my $invoker = shift;
+
     return $self->msg_send(message => "$_[0]", invoker => $invoker);
 }
 

@@ -14,17 +14,17 @@ sub new {
     return $self;
 }
 
-
 sub send {
     my $self = shift;
 
-    $self->{pool}->msg_send(room => $self->{room},
-			    invoker => $self->{conn},
-			    message => "$_[0]");
+    $self->{pool}->msg_send(
+        room    => $self->{room},
+        invoker => $self->{conn},
+        message => "$_[0]"
+    );
 
     return $self;
 }
-
 
 sub emit {
     my $self = shift;
@@ -32,13 +32,14 @@ sub emit {
 
     my $event = $self->_build_event_message($name, @_);
 
-    $self->{pool}->msg_send(room => $self->{room},
-			    invoker => $self->{conn},
-			    message => $event);
+    $self->{pool}->msg_send(
+        room    => $self->{room},
+        invoker => $self->{conn},
+        message => $event
+    );
 
     return $self;
 }
-
 
 sub _build_event_message {
     my $self  = shift;

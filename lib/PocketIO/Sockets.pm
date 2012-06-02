@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use PocketIO::Message;
+use PocketIO::Room;
 
 sub new {
     my $class = shift;
@@ -33,6 +34,13 @@ sub emit {
     return $self;
 }
 
+sub in {
+    my $self = shift;
+    my ($room) = @_;
+
+    return PocketIO::Room->new(room => $room, pool => $self->{pool});
+}
+
 sub _build_event_message {
     my $self  = shift;
     my $event = shift;
@@ -41,15 +49,6 @@ sub _build_event_message {
         type => 'event',
         data => {name => $event, args => [@_]}
     );
-}
-
-
-sub in {
-    my $self = shift;
-
-    my ($room) = @_;
-
-    return PocketIO::Room->new(room => $room, pool => $self->{pool});
 }
 
 1;

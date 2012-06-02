@@ -12,8 +12,8 @@ use PocketIO::Connection;
 my $pool = PocketIO::Pool->new;
 my $conn = PocketIO::Connection->new;
 
-my $sockets = PocketIO::Broadcast->new(conn => $conn, pool => $pool);
-ok $sockets;
+my $broadcast = PocketIO::Broadcast->new(conn => $conn, pool => $pool);
+ok $broadcast;
 
-$sockets->send('foo');
-$sockets->emit('bar');
+$broadcast->send(undef, 'foo');
+$broadcast->emit(undef, 'bar');
