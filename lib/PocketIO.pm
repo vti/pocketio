@@ -238,11 +238,12 @@ broadcasts.  You can subscribe or unsubscribe a socket to/from a room:
 
     sub {
         my $self = shift;
+
         $self->join('a room');
+
         $self->sockets->in('a room')->emit('message', data);
         $self->broadcast->to('a room')->emit("other message");
     }
-
 
 =head1 CONFIGURATIONS
 
