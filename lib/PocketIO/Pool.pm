@@ -141,14 +141,14 @@ sub send_raw {
 sub send {
     my $self = shift;
 
-    return $self->send_raw(message => "$_[0]");
+    return $self->send_raw(message => $_[0]);
 }
 
 sub broadcast {
     my $self    = shift;
     my $invoker = shift;
 
-    return $self->send_raw(message => "$_[0]", invoker => $invoker);
+    return $self->send_raw(message => $_[0], invoker => $invoker);
 }
 
 sub _connections {
