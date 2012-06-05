@@ -17,7 +17,7 @@ sub new {
 sub send {
     my $self = shift;
 
-    $self->{pool}->msg_send(
+    $self->{pool}->send_raw(
         room    => $self->{room},
         invoker => $self->{conn},
         message => "$_[0]"
@@ -32,7 +32,7 @@ sub emit {
 
     my $event = $self->_build_event_message($name, @_);
 
-    $self->{pool}->msg_send(
+    $self->{pool}->send_raw(
         room    => $self->{room},
         invoker => $self->{conn},
         message => $event

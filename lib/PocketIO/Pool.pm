@@ -105,7 +105,7 @@ sub room_leave {
     return $conn;
 }
 
-sub msg_send {
+sub send_raw {
     my $self = shift;
     my ($msg) = {@_};
 
@@ -126,6 +126,7 @@ sub msg_send {
       defined $msg->{room}
       ? values %{$self->{rooms}{$msg->{room}}}
       : $self->_connections;
+
     foreach my $conn (@members) {
         next unless blessed $conn && $conn->is_connected;
         next if defined $msg->{invoker} && $conn->id eq $msg->{invoker}->id;
@@ -140,14 +141,14 @@ sub msg_send {
 sub send {
     my $self = shift;
 
-    return $self->msg_send(message => "$_[0]");
+    return $self->send_raw(message => "$_[0]");
 }
 
 sub broadcast {
     my $self    = shift;
     my $invoker = shift;
 
-    return $self->msg_send(message => "$_[0]", invoker => $invoker);
+    return $self->send_raw(message => "$_[0]", invoker => $invoker);
 }
 
 sub _connections {
