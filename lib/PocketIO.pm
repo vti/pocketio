@@ -347,6 +347,8 @@ Oskari Okko Ojala
 
 Jason May
 
+Michael FiG
+
 =head1 AUTHOR
 
 Viacheslav Tykhanovskyi, C<vti@cpan.org>.
