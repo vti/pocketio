@@ -61,6 +61,13 @@ sub new {
     return $self;
 }
 
+sub new_passive {
+    my $class = shift;
+    my $self = {@_};
+    bless $self, $class;
+    return $self;
+}
+
 sub socket { $_[0]->{socket} }
 
 sub pool { $_[0]->{pool} }
@@ -334,6 +341,7 @@ sub _start_timer {
     my ($timer) = @_;
 
     my $timeout = $self->{"${timer}_timeout"};
+    return if (!defined $timeout);
 
     DEBUG && $self->_debug("Start '${timer}_timer' ($timeout)");
 
@@ -408,7 +416,7 @@ PocketIO::Connection - Connection class
 =head1 DESCRIPTION
 
 L<PocketIO::Connection> is a connection class that
-incapsulates all the logic for bulding and parsing Socket.IO messages. Used
+encapsulates all the logic for bulding and parsing Socket.IO messages. Used
 internally.
 
 =head1 METHODS

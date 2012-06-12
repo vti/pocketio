@@ -114,10 +114,14 @@ sub send_raw {
         # Message directly to a connection.
         my $conn = $self->find_local_connection($msg->{id});
         if (defined $conn) {
-
             # Send the message here and now.
             DEBUG && warn "Sending message to $msg->{id}\n";
-            $conn->send($msg->{message});
+	    if (defined $msg->{bytes}) {
+		$conn->write($msg->{bytes});
+	    }
+	    else {
+		$conn->send($msg->{message});
+	    }
         }
         return $conn;
     }
