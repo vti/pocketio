@@ -72,7 +72,7 @@ sub room_join {
     my $room = shift;
     my $conn = shift;
 
-    my $id   = blessed $conn ? $conn->id : $conn;
+    my $id = blessed $conn ? $conn->id : $conn;
     $conn = $self->{connections}->{$id};
 
     $self->{rooms}{$room}{$id}    = $conn;
@@ -114,14 +114,15 @@ sub send_raw {
         # Message directly to a connection.
         my $conn = $self->find_local_connection($msg->{id});
         if (defined $conn) {
+
             # Send the message here and now.
             DEBUG && warn "Sending message to $msg->{id}\n";
-	    if (defined $msg->{bytes}) {
-		$conn->write($msg->{bytes});
-	    }
-	    else {
-		$conn->send($msg->{message});
-	    }
+            if (defined $msg->{bytes}) {
+                $conn->write($msg->{bytes});
+            }
+            else {
+                $conn->send($msg->{message});
+            }
         }
         return $conn;
     }

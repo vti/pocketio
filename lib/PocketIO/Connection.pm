@@ -46,8 +46,7 @@ sub new {
         eval {
             $on_connect->($self->{socket}, @{$self->{on_connect_args} || []});
             1;
-        }
-        or do {
+        } || do {
             warn "Connection error: $_";
 
             $self->close;
@@ -63,7 +62,7 @@ sub new {
 
 sub new_passive {
     my $class = shift;
-    my $self = {@_};
+    my $self  = {@_};
     bless $self, $class;
     return $self;
 }
