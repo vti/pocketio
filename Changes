@@ -1,5 +1,10 @@
 Revision history for perl module PocketIO
 
+0.15 2012-12-30
+
+ - Fixed room stringification problem (Peter Stuifzand)
+ - Skip hanging test on windows
+
 0.14 2012-06-05
 
  - Fixed exception handling bugs (Jason May)
