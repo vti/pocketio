@@ -6,6 +6,8 @@ BEGIN {
 
     plan skip_all => 'Plack and Twiggy are required to run this test'
       unless eval { require Plack; require Twiggy; 1 };
+
+    plan skip_all => 'Hangs on Windows' if $^O eq 'MSWin32';
 }
 
 plan tests => 2;
