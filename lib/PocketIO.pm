@@ -349,6 +349,8 @@ Jason May
 
 Michael FiG
 
+Peter Stuifzand
+
 =head1 AUTHOR
 
 Viacheslav Tykhanovskyi, C<vti@cpan.org>.
