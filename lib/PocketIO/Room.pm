@@ -20,7 +20,7 @@ sub send {
     $self->{pool}->send_raw(
         room    => $self->{room},
         invoker => $self->{conn},
-        message => "$_[0]"
+        message => $_[0],
     );
 
     return $self;
