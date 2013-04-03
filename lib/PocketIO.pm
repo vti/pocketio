@@ -95,7 +95,7 @@ sub _get_handler {
         $class->new;
       };
 
-    return $instance->run;
+    return $instance->$method;
 }
 
 1;
