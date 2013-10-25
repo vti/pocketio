@@ -1,5 +1,10 @@
 Revision history for perl module PocketIO
 
+{{$NEXT}}
+
+ - Fixed bug when attempting to broadcast->send (mvgrimes)
+ - support method other than 'run' (tokubass)
+
 0.15 2012-12-30
 
  - Fixed room stringification problem (Peter Stuifzand)
