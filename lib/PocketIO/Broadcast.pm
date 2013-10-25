@@ -10,7 +10,7 @@ use PocketIO::Room;
 sub send {
     my $self = shift;
 
-    $self->{pool}->broadcast(@_);
+    $self->{pool}->broadcast($self->{conn}, @_);
 
     return $self;
 }
