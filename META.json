@@ -1,0 +1,82 @@
+{
+   "abstract" : "Socket.IO PSGI application",
+   "author" : [
+      "Viacheslav Tykhanovskyi, C<vti@cpan.org>."
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Minilla/v0.7.5, CPAN::Meta::Converter version 2.130880",
+   "license" : [
+      "unknown"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "pocketio",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "xt",
+         "inc",
+         "share",
+         "eg",
+         "examples",
+         "author",
+         "builder"
+      ]
+   },
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "CPAN::Meta" : "0",
+            "CPAN::Meta::Prereqs" : "0",
+            "Module::Build" : "0.38"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "Test::CPAN::Meta" : "0",
+            "Test::MinimumVersion" : "0.10108",
+            "Test::Pod" : "1.41",
+            "Test::Spellunker" : "v0.2.7"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "AnyEvent" : "0",
+            "Carp" : "0",
+            "JSON" : "2.53",
+            "Protocol::SocketIO" : "0.04",
+            "Protocol::WebSocket" : "0.009006",
+            "Scalar::Util" : "0",
+            "Test::More" : "0",
+            "Test::TCP" : "0"
+         }
+      }
+   },
+   "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/vti/pocketio/issues"
+      },
+      "homepage" : "https://github.com/vti/pocketio",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/vti/pocketio.git",
+         "web" : "https://github.com/vti/pocketio"
+      }
+   },
+   "version" : "0.16",
+   "x_contributors" : [
+      "Jens Gassmann <jens.gassmann@atomix.de>",
+      "Audrey Tang <audrey.tang@socialtext.com>",
+      "Uwe Voelker <uwe.voelker@xing.com>",
+      "Oskari Okko Ojala <okko@frantic.com>",
+      "Jason May <jason.a.may@gmail.com>",
+      "Michael FiG <git@michael.fig.org>",
+      "Peter Stuifzand <peter@stuifzand.eu>",
+      "tokubass <tomi21110@gmail.com>",
+      "Mark Grimes <mgrimes@cpan.org>",
+      "vti <viacheslav.t@gmail.com>"
+   ]
+}
