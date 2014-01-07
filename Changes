@@ -2,6 +2,10 @@ Revision history for perl module PocketIO
 
 {{$NEXT}}
 
+0.17 2014-01-07T20:29:26Z
+
+ - just meta files update
+
 0.16 2013-10-25T16:55:13Z
 
  - Fixed bug when attempting to broadcast->send (mvgrimes)

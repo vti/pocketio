@@ -23,7 +23,7 @@ my %args = (
         'Module::Build' => 0.38,
     },
 
-    name            => 'pocketio',
+    name            => 'PocketIO',
     module_name     => 'PocketIO',
     allow_pureperl => 0,
 
