@@ -142,10 +142,14 @@ PocketIO - Socket.IO PSGI application
 =head1 DESCRIPTION
 
 L<PocketIO> is a server implementation of SocketIO in Perl, you still need
-C<socket.io> javascript library on the client.
+C<socket.io> javascript library for the client (available at 
+L<https://github.com/socketio/socket.io-client>).
 
 L<PocketIO> aims to have API as close as possible to the Node.js implementation
 and sometimes it might look not very perlish.
+
+Currently only the pre-v1 releases of SocketIO are supported by this module. Client 
+libraries for the v1.* and v2.* won't work with the server.
 
 =head2 How to use
 
